@@ -1,2 +1,2 @@
 # haos_stuff
-homeassistant stuff
+Home assistant automations, dashboards, scripts etc...
