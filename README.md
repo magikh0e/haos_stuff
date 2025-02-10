@@ -2,6 +2,7 @@
 Home assistant automations, dashboards, scripts etc...
 
 ## Custom dashboard for the AC Infinity integration for Home Assistant.
+[Custom HAOS AC Infinity Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/acinfinity_integration_dashboard)
 
 ![AC Infinity HAOS Integration dashboard](https://github.com/magikh0e/haos_stuff/blob/main/ACInfinity%20Dashboard%20%E2%80%93%20Home%20Assistant.png?raw=true)
 
