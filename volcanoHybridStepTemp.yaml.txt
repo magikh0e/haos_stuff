@@ -1,0 +1,188 @@
+# ==============================================================================
+# Volcano Hybrid — manual temperature stepping via dimmer remote
+# ------------------------------------------------------------------------------
+# Companion to volcanoHybridProgress.yaml.txt (which auto-walks temperature
+# over runtime). This file is the manual override: two action snippets that
+# step up and down through the Vapesuvius temperature ladder
+#
+#     179 → 185 → 191 → 199 → 205 °C
+#
+# Snap-to-next-rung behavior — the templates compare current temp against
+# each rung in order, so pressing "up" from 188 goes to 191 (not 199), and
+# pressing "down" from 188 goes to 185 (not 179).
+#
+# Reference: https://www.reddit.com/user/Vapesuvius/comments/zuwcs7/
+#
+# Companion files:
+#   - volcanoHybridProgress.yaml.txt  (auto-walk temp over runtime)
+#   - volcanoHybridFillBag.yaml.txt   (push-button bag-fill script)
+#   - volcanoHybridLovelace.yaml.txt  (dashboard tile with all controls)
+#   - volcanoHybridVoice.yaml.txt     (HA Assist voice commands)
+# ==============================================================================
+#
+# Suggested dimmer-remote button mapping:
+#
+#   Long press on    →  Turn on heating
+#   Long press off   →  Turn off heating
+#   Short press on   →  Turn on fan
+#   Short press off  →  Turn off fan
+#   Up               →  Inc temp (this file)
+#   Down             →  Dec temp (this file)
+#
+# The two snippets below are bare `action:` blocks — drop them into a
+# device-trigger automation, a script, or a Lovelace button card. A
+# complete automation example (Hue-style dimmer remote) is at the bottom.
+# ==============================================================================
+
+
+# ---------- Increment temperature ----------
+- action: climate.set_temperature
+  metadata: {}
+  data:
+    temperature: >
+      {%set temp = state_attr('climate.volcano_hybrid', 'temperature')%}
+      {%if temp < 179 %}179{%elif temp < 185 %}185{%elif temp < 191
+      %}191{%elif temp < 199 %}199{%else %}205{%endif%}
+  target:
+    entity_id:
+      - climate.volcano_hybrid
+  alias: Inc temp
+
+
+# ---------- Decrement temperature ----------
+- action: climate.set_temperature
+  metadata: {}
+  data:
+    temperature: >
+      {%set temp = state_attr('climate.volcano_hybrid', 'temperature')%}
+      {%if temp > 205 %}205{%elif temp > 199 %}199{%elif temp > 191
+      %}191{%elif temp > 185 %}185{%else %}179{%endif%}
+  target:
+    entity_id:
+      - climate.volcano_hybrid
+  alias: Dec temp
+
+
+# ==============================================================================
+# Reusable scripts (optional but recommended) — wrap the snippets above as
+# named scripts so multiple automations / dashboards can reuse them. Drop
+# this block into scripts.yaml.
+# ==============================================================================
+# script:
+#   volcano_inc_temp:
+#     alias: "Volcano: step temp up"
+#     sequence:
+#       - action: climate.set_temperature
+#         data:
+#           temperature: >
+#             {% set temp = state_attr('climate.volcano_hybrid', 'temperature') %}
+#             {% if temp < 179 %}179
+#             {% elif temp < 185 %}185
+#             {% elif temp < 191 %}191
+#             {% elif temp < 199 %}199
+#             {% else %}205
+#             {% endif %}
+#         target:
+#           entity_id: climate.volcano_hybrid
+#
+#   volcano_dec_temp:
+#     alias: "Volcano: step temp down"
+#     sequence:
+#       - action: climate.set_temperature
+#         data:
+#           temperature: >
+#             {% set temp = state_attr('climate.volcano_hybrid', 'temperature') %}
+#             {% if temp > 205 %}205
+#             {% elif temp > 199 %}199
+#             {% elif temp > 191 %}191
+#             {% elif temp > 185 %}185
+#             {% else %}179
+#             {% endif %}
+#         target:
+#           entity_id: climate.volcano_hybrid
+
+
+# ==============================================================================
+# Complete wiring example — Hue-style dimmer remote (4 buttons + long-press)
+# Drop into automations.yaml. Adjust the device_id and domain for your
+# specific dimmer (Hue, Aqara, IKEA, Z2M generic, etc.).
+# ==============================================================================
+# - alias: "Volcano: dimmer remote control"
+#   description: "Wires a 4-button dimmer to volcano heating/fan/temp stepping"
+#   mode: parallel
+#   trigger:
+#     # ON button — short = fan, long = heat
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_short_release
+#       subtype: on
+#       id: on_short
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_long_release
+#       subtype: on
+#       id: on_long
+#
+#     # OFF button — short = fan off, long = heat off
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_short_release
+#       subtype: off
+#       id: off_short
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_long_release
+#       subtype: off
+#       id: off_long
+#
+#     # UP / DOWN — temp stepping
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_short_release
+#       subtype: up
+#       id: up
+#     - platform: device
+#       device_id: REPLACE_WITH_YOUR_DIMMER_DEVICE_ID
+#       domain: hue
+#       type: remote_button_short_release
+#       subtype: down
+#       id: down
+#
+#   action:
+#     - choose:
+#         # Fan on/off (short on / short off)
+#         - conditions: "{{ trigger.id == 'on_short' }}"
+#           sequence:
+#             - action: switch.turn_on
+#               target:
+#                 entity_id: switch.volcano_hybrid_fan
+#         - conditions: "{{ trigger.id == 'off_short' }}"
+#           sequence:
+#             - action: switch.turn_off
+#               target:
+#                 entity_id: switch.volcano_hybrid_fan
+#
+#         # Heat on/off (long on / long off)
+#         - conditions: "{{ trigger.id == 'on_long' }}"
+#           sequence:
+#             - action: switch.turn_on
+#               target:
+#                 entity_id: switch.volcano_hybrid_heat
+#         - conditions: "{{ trigger.id == 'off_long' }}"
+#           sequence:
+#             - action: switch.turn_off
+#               target:
+#                 entity_id: switch.volcano_hybrid_heat
+#
+#         # Temp stepping (up / down)
+#         - conditions: "{{ trigger.id == 'up' }}"
+#           sequence:
+#             - action: script.volcano_inc_temp
+#         - conditions: "{{ trigger.id == 'down' }}"
+#           sequence:
+#             - action: script.volcano_dec_temp

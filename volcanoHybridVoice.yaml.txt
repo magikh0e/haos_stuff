@@ -1,0 +1,185 @@
+# ==============================================================================
+# Volcano Hybrid — voice command setup (HA Assist)
+# ------------------------------------------------------------------------------
+# Hands-free control via Home Assistant's built-in Assist conversation engine.
+# Works through any Assist surface:
+#
+#   - HA mobile app voice button
+#   - HA dashboard mic button
+#   - Voice satellites (M5Stack Atom Echo, Wyoming Whisper/Piper, ESPHome
+#     voice satellites, Home Assistant Voice Preview Edition)
+#   - Local STT/TTS via Piper (no cloud round-trip)
+#
+# Two parts:
+#
+#   1. intent_script — declares two named intents (VolcanoFillBag,
+#      VolcanoStartAutoProgress) and what each one does. Goes in
+#      configuration.yaml.
+#
+#   2. custom_sentences — maps natural-language phrases to those intents.
+#      One YAML file per language, dropped under
+#      config/custom_sentences/<lang>/volcano.yaml.
+#
+# Companion files:
+#   - volcanoHybridProgress.yaml.txt    (auto-progress automation)
+#   - volcanoHybridFillBag.yaml.txt     (bag-fill script)
+#   - volcanoHybridStepTemp.yaml.txt    (manual ±step scripts)
+#   - volcanoHybridLovelace.yaml.txt    (dashboard tile)
+# ==============================================================================
+
+
+# ============================================================================
+# Part 1 — drop this into configuration.yaml (top level, alongside the
+# automation: / climate: / sensor: blocks)
+# ============================================================================
+
+intent_script:
+
+  VolcanoFillBag:
+    speech:
+      text: "Filling your bag now."
+    action:
+      - action: script.volcano_fill_bag
+
+  VolcanoStartAutoProgress:
+    speech:
+      text: "Starting the volcano. Auto progress is armed and the heater is on."
+    action:
+      # Make sure the auto-progress automation is enabled
+      - action: automation.turn_on
+        target:
+          entity_id: automation.volcano_progress
+      # And turn the heater on so the sensor.volcano_hybrid_current_on_time
+      # counter starts ticking, which is what the auto-progress triggers off
+      - action: climate.turn_on
+        target:
+          entity_id: climate.volcano_hybrid
+
+  VolcanoStop:
+    speech:
+      text: "Volcano off. Auto progress disabled."
+    action:
+      - action: automation.turn_off
+        target:
+          entity_id: automation.volcano_progress
+      - action: climate.set_fan_mode
+        target:
+          entity_id: climate.volcano_hybrid
+        data:
+          fan_mode: "off"
+      - action: climate.turn_off
+        target:
+          entity_id: climate.volcano_hybrid
+
+  VolcanoTempUp:
+    speech:
+      text: "Stepping up."
+    action:
+      - action: script.volcano_inc_temp
+
+  VolcanoTempDown:
+    speech:
+      text: "Stepping down."
+    action:
+      - action: script.volcano_dec_temp
+
+  VolcanoStatus:
+    speech:
+      text: >-
+        {% set t = state_attr('climate.volcano_hybrid', 'temperature') %}
+        {% set c = state_attr('climate.volcano_hybrid', 'current_temperature') %}
+        {% set heat = is_state('climate.volcano_hybrid', 'heat') %}
+        {% set runtime = states('sensor.volcano_hybrid_current_on_time') %}
+        {% if heat %}
+          The volcano is at {{ c }} degrees, target {{ t }}, runtime {{ runtime }} minutes.
+        {% else %}
+          The volcano is off. Last target was {{ t }} degrees.
+        {% endif %}
+
+
+# ============================================================================
+# Part 2 — drop this in config/custom_sentences/en/volcano.yaml
+# Restart HA (or "Reload Custom Sentences" from the Assist UI) after saving.
+# ============================================================================
+
+# language: en
+# intents:
+#
+#   # ---------- Fill a bag ----------
+#   VolcanoFillBag:
+#     data:
+#       - sentences:
+#           - "fill (a|the|my) bag"
+#           - "(start|run) (a|the) bag fill"
+#           - "fill (a|the|my) (volcano|vape) bag"
+#           - "make (a|the|my) bag"
+#
+#   # ---------- Heat up + auto-progress ----------
+#   VolcanoStartAutoProgress:
+#     data:
+#       - sentences:
+#           - "(start|begin|run) (the|a) (volcano|vape) (session|run)"
+#           - "(start|begin) auto[ -]?progress"
+#           - "(warm|heat|fire) up (the|my) volcano"
+#           - "turn on (the|my) volcano"
+#           - "volcano on"
+#
+#   # ---------- Stop ----------
+#   VolcanoStop:
+#     data:
+#       - sentences:
+#           - "(stop|end|finish) (the|my) (volcano|vape) (session|run)"
+#           - "turn off (the|my) volcano"
+#           - "(volcano|vape) off"
+#           - "shut down (the|my) volcano"
+#
+#   # ---------- Temperature step ----------
+#   VolcanoTempUp:
+#     data:
+#       - sentences:
+#           - "(step|turn|kick|nudge) up (the|volcano)?( ?temp(erature)?)?"
+#           - "(volcano|vape) up"
+#           - "(hotter|raise|increase)( the)? temp(erature)?"
+#
+#   VolcanoTempDown:
+#     data:
+#       - sentences:
+#           - "(step|turn|kick|nudge) down (the|volcano)?( ?temp(erature)?)?"
+#           - "(volcano|vape) down"
+#           - "(cooler|lower|decrease)( the)? temp(erature)?"
+#
+#   # ---------- Status ----------
+#   VolcanoStatus:
+#     data:
+#       - sentences:
+#           - "(what's|what is|how's|how is) (the |my )?(volcano|vape) (status|doing|at)?"
+#           - "(volcano|vape) status"
+#           - "(volcano|vape) (temp|temperature)"
+#           - "is (the|my) volcano (on|hot|ready)"
+
+
+# ============================================================================
+# Testing
+# ----------------------------------------------------------------------------
+# 1. Save Part 1 into configuration.yaml
+# 2. Save Part 2 (uncommented) into config/custom_sentences/en/volcano.yaml
+# 3. Settings → System → Restart, OR Developer Tools → YAML
+#    → "Reload Custom Sentences" + "Reload Automations & Scenes"
+# 4. Settings → Voice Assistants → Assist → click the mic, try:
+#       "fill my bag"
+#       "warm up the volcano"
+#       "what's the volcano status"
+# 5. Bind to a voice satellite (Atom Echo, Voice Preview, etc.) by
+#    setting that device's pipeline to your Assist pipeline. Now the
+#    same sentences work hands-free across the room.
+#
+# Tuning notes:
+#   - Sentence syntax is HA's own DSL. (foo|bar) = "foo OR bar".
+#     Square brackets [optional] make a token optional. Trailing ? on
+#     a paren group makes the whole group optional.
+#   - The Status intent's response is a Jinja template — useful pattern
+#     for any voice intent that needs to read live state back. Keep
+#     responses short; long TTS feels laggy.
+#   - Don't over-stack synonyms. Each sentence pattern adds matching
+#     work to every voice utterance. 3-5 patterns per intent is plenty.
+# ============================================================================

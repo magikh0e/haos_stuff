@@ -1,0 +1,101 @@
+# ==============================================================================
+# Volcano Hybrid — fill a bag (named script)
+# ------------------------------------------------------------------------------
+# Push-button script that runs the full bag-fill sequence end-to-end:
+#
+#   1. Turn the heater on
+#   2. Wait for the device to reach target temperature
+#   3. Pause 10s extra (lets the temperature stabilize past the
+#      first-match heatup detector)
+#   4. Start the fan
+#   5. Run fan ~41s (≈ standard S&B Easy Valve bag fill time — tune
+#      for your bag size / temperature)
+#   6. Stop the fan
+#   7. Pause 10s (window to manually re-bump the fan and top off the
+#      bag if your bag isn't quite full)
+#   8. Turn the heater off
+#
+# Drop into scripts.yaml. Once saved, the script is callable as
+# script.volcano_fill_bag from any automation, dashboard button, voice
+# assistant, or REST-API call.
+#
+# Companion files:
+#   - volcanoHybridProgress.yaml.txt   (auto-walk temp over runtime)
+#   - volcanoHybridStepTemp.yaml.txt   (manual ±step from a dimmer remote)
+#   - volcanoHybridLovelace.yaml.txt   (dashboard tile with all controls)
+#   - volcanoHybridVoice.yaml.txt      (HA Assist voice commands)
+#
+# Tuning notes:
+#   - Bag-fill time (step 5). 41s fills a standard S&B Easy Valve bag
+#     to ~95% on most ladder temperatures. Larger bags (XL) need
+#     75–100s. Higher temps fill faster because there's more vapor
+#     density per unit airflow. Watch the first few fills and dial in.
+#
+#   - Heater stabilization pause (step 3). 10s is conservative; the
+#     heatup detector matches as soon as current_temperature reaches
+#     the setpoint, but the heating element takes a few extra seconds
+#     to fully equilibrate and start producing dense vapor. Drop to
+#     5s if you'd rather start filling sooner.
+#
+#   - Top-off window (step 7). The 10s pause between fan-off and
+#     heater-off lets you manually retrigger the fan via the device
+#     button or another script if the bag isn't full enough. If you
+#     never use this, drop the delay + step 8 reduces to immediate.
+#
+# Defensive choices:
+#   - continue_on_timeout: true on the heatup wait_template means the
+#     script proceeds even if the temperature never matches (BLE
+#     dropout, sensor lag, etc.) instead of hanging indefinitely.
+#   - Step 5 uses 41s instead of 40s — extra second guards against
+#     the timer round-down lopping off a bag's worth of fill.
+# ==============================================================================
+
+
+sequence:
+  - action: climate.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.volcano_hybrid
+  - wait_template: >-
+      {{state_attr('climate.volcano_hybrid', 'temperature') ==
+      state_attr('climate.volcano_hybrid', 'current_temperature')}}
+    continue_on_timeout: true
+    alias: Wait for heatup
+  - alias: Wait a little bit more
+    delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+  - action: climate.set_fan_mode
+    metadata: {}
+    data:
+      fan_mode: "on"
+    target:
+      entity_id: climate.volcano_hybrid
+  - alias: Wait for the bag to fill (40s)
+    delay:
+      hours: 0
+      minutes: 0
+      seconds: 41
+      milliseconds: 0
+  - action: climate.set_fan_mode
+    metadata: {}
+    data:
+      fan_mode: "off"
+    target:
+      entity_id: climate.volcano_hybrid
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+    alias: Wait a little bit more
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.volcano_hybrid
+alias: Volcano fill bag
+description: ""

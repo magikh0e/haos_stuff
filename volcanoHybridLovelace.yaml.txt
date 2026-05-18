@@ -1,0 +1,162 @@
+# ==============================================================================
+# Volcano Hybrid — Lovelace dashboard tile
+# ------------------------------------------------------------------------------
+# Single vertical-stack card with everything you'd want on a Volcano control
+# surface: live current/target temp, heater state, runtime counter, the
+# built-in thermostat slider, ±step buttons that walk the Vapesuvius ladder,
+# a fan-on / fan-off pair, and a one-press "Fill a bag" button that calls
+# the named script.
+#
+# Built with stock Lovelace card types only — no HACS / custom-cards required.
+# Drop it into a Lovelace dashboard via:
+#
+#   Dashboard → ⋮ Edit dashboard → ⋮ Raw configuration editor → paste the
+#   block below under views[].cards[].
+#
+# Or via the UI: + ADD CARD → "Manual" → paste.
+#
+# Companion files:
+#   - volcanoHybridProgress.yaml.txt    (auto-walk temp over runtime)
+#   - volcanoHybridStepTemp.yaml.txt    (the ±step scripts this card calls)
+#   - volcanoHybridFillBag.yaml.txt     (the bag-fill script this card calls)
+#   - volcanoHybridVoice.yaml.txt       (voice-assistant intents for hands-free)
+#
+# Prerequisites:
+#   - SavageNL/home-assistant-volcano-hybrid integration installed
+#   - script.volcano_inc_temp / script.volcano_dec_temp defined (see
+#     volcanoHybridStepTemp.yaml.txt for the script wrappers)
+#   - script.volcano_fill_bag defined (see volcanoHybridFillBag.yaml.txt)
+#   - automation.volcano_progress defined (see volcanoHybridProgress.yaml.txt)
+#     — only needed if you want the auto-progress toggle row
+# ==============================================================================
+
+
+type: vertical-stack
+title: Volcano Hybrid
+cards:
+
+  # ---------- Status header — at-a-glance temp + runtime ----------
+  # Reads temperature_unit from the climate entity so this works on
+  # both °C and °F installs without a hard-coded suffix. Runtime
+  # gracefully degrades to "—" when the sensor reports unknown /
+  # unavailable (BLE not connected, freshly booted, etc.).
+  - type: markdown
+    content: |
+      ### 🌋 Volcano Hybrid
+
+      {% set t = state_attr('climate.volcano_hybrid', 'temperature') %}
+      {% set c = state_attr('climate.volcano_hybrid', 'current_temperature') %}
+      {% set unit = state_attr('climate.volcano_hybrid', 'temperature_unit') | default('°') %}
+      {% set runtime = states('sensor.volcano_hybrid_current_on_time') %}
+      {% set heat = is_state('climate.volcano_hybrid', 'heat') %}
+      {% set fan = state_attr('climate.volcano_hybrid', 'fan_mode') %}
+
+      **Current:** {{ c | default('—') }}{{ unit }}
+      &nbsp;&nbsp;**Target:** {{ t | default('—') }}{{ unit }}
+
+      {% if heat %}🔥 Heating{% else %}⚪ Idle{% endif %}
+      &nbsp;·&nbsp;
+      {% if fan == 'on' %}🌬 Fan on{% else %}💨 Fan off{% endif %}
+
+      Runtime: **{{ runtime if runtime not in ['unknown', 'unavailable', 'none'] else '—' }}** min
+
+  # ---------- Built-in thermostat slider ----------
+  # Gives you the manual fine-tune slider for free
+  - type: thermostat
+    entity: climate.volcano_hybrid
+    name: Temperature
+
+  # ---------- Vapesuvius ladder step buttons ----------
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: −1 step
+        icon: mdi:thermometer-minus
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.volcano_dec_temp
+      - type: button
+        name: +1 step
+        icon: mdi:thermometer-plus
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.volcano_inc_temp
+
+  # ---------- Fan on / fan off ----------
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Fan on
+        icon: mdi:fan
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_fan_mode
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            fan_mode: "on"
+      - type: button
+        name: Fan off
+        icon: mdi:fan-off
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_fan_mode
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            fan_mode: "off"
+
+  # ---------- Big "fill a bag" button — confirmation guarded ----------
+  # show_icon + show_state false makes this read as a primary action
+  # instead of a status display. Confirmation prevents accidental triggers.
+  - type: button
+    name: 🎈 Fill a bag
+    icon: mdi:bag-personal
+    show_state: false
+    icon_height: 48px
+    tap_action:
+      action: perform-action
+      perform_action: script.volcano_fill_bag
+      confirmation:
+        text: "Run the full bag-fill sequence (~60s)?"
+
+  # ---------- Auto-progress + runtime row ----------
+  - type: entities
+    title: Auto-progress
+    show_header_toggle: false
+    entities:
+      - entity: automation.volcano_progress
+        name: Auto temperature progression
+        secondary_info: last-changed
+      - entity: sensor.volcano_hybrid_current_on_time
+        name: Current runtime (min)
+      - entity: climate.volcano_hybrid
+        name: Climate entity
+        secondary_info: last-changed
+
+
+# ==============================================================================
+# Optional — mushroom-card variant (HACS dependency)
+# ------------------------------------------------------------------------------
+# Same surface, prettier defaults. Requires custom:mushroom from HACS.
+# Drop into the same dashboard slot. The thermostat card from the stock
+# stack still works alongside mushroom buttons.
+# ==============================================================================
+#
+# type: custom:mushroom-template-card
+# primary: 🌋 Volcano Hybrid
+# secondary: |-
+#   {{ state_attr('climate.volcano_hybrid', 'current_temperature') }}°C →
+#   {{ state_attr('climate.volcano_hybrid', 'temperature') }}°C
+# icon: |-
+#   {% if is_state('climate.volcano_hybrid', 'heat') %}mdi:fire
+#   {% else %}mdi:fire-off{% endif %}
+# icon_color: |-
+#   {% if is_state('climate.volcano_hybrid', 'heat') %}red{% else %}grey{% endif %}
+# tap_action:
+#   action: more-info
+# entity: climate.volcano_hybrid
