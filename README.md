@@ -25,13 +25,14 @@ Custom Number Box Card: https://github.com/junkfix/numberbox-card
 
 ![EcoFlow Delta 3 Max Plus dashboard](https://github.com/magikh0e/haos_stuff/blob/main/Ecoflow%20Delta%203%20Max%20Plus%20Dashboard.jpeg?raw=true)
 
-Shows battery SoC, charge/discharge remaining time, real-time power flow (total in/out, AC input, 2x solar, 12V DC), per-port USB-C/USB-A output, and a 24h energy history chart.
+Battery SoC + charge/discharge state, output controls (AC / AC2 / DC switches, X-Boost, beeper, backup reserve, bypass), SoC limit + backup-reserve sliders, real-time power flow (total in/out, AC input, 2x solar, 12V DC), per-port USB-C/USB-A output, and a 24h energy history chart.
 
 ### <ins>Custom Cards used by dashboard, install via HACS..</ins>
-None - uses only built-in Home Assistant cards (gauge, tile, statistics-graph, sections view). No HACS dependencies.
+None - uses only built-in Home Assistant cards (gauge, tile, entities, statistics-graph, sections view). No HACS dependencies.
 
 ### <ins>Setup</ins>
-Entity IDs use a generic `sensor.delta_3_max_plus_` prefix. Find your real prefix via Developer Tools -> States (filter "battery"), then find-and-replace `delta_3_max_plus` throughout the YAML with your device's prefix (e.g. `delta_3_max_plus_1753`). Paste via Edit dashboard -> Raw configuration editor.
+Entity IDs use a generic `delta_3_max_plus_` prefix across the sensor/switch/number domains. Find your real prefix via Developer Tools -> States (filter "battery"), then find-and-replace `delta_3_max_plus` throughout the YAML with your device's prefix (e.g. `delta_3_max_plus_1753`). Paste via Edit dashboard -> Raw configuration editor.
+
 ## Home Assistant pack for the Storz & Bickel Volcano Hybrid.
 Scripts, automations, helper templates, voice commands, and dashboards for the [SavageNL/home-assistant-volcano-hybrid](https://github.com/SavageNL/home-assistant-volcano-hybrid) BLE integration. Session controls implement the [Vapesuvius temperature ladder](https://www.reddit.com/user/Vapesuvius/comments/zuwcs7/) (179 → 185 → 191 → 199 → 205 °C). Stock Lovelace cards only — no HACS dependencies.
 
