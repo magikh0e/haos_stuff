@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Home Assistant — Simple DIY Alarm System — magikh0e.pl</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="https://magikh0e.pl/img/pubhomeautomationlogo-favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://magikh0e.pl//img/pubhomeautomationlogo-favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="https://magikh0e.pl//img/pubhomeautomationlogo-favicon-192x192.png">
+<link rel="apple-touch-icon" href="https://magikh0e.pl//img/pubhomeautomationlogo-apple-touch-icon.png">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Self-hosted DIY alarm in Home Assistant: contact + motion sensors, TTS, RGB feedback, PTZ tracking, privacy mode, smart locks. No cloud monitoring.">
+<meta name="author" content="magikh0e">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://magikh0e.pl/pubHomeAutomation/alarm-system.html">
+<meta property="og:title" content="Home Assistant — Simple DIY Alarm System">
+<meta property="og:description" content="Self-hosted HA alarm: contact + motion, TTS, RGB, PTZ tracking, privacy mode, smart locks. Full YAML.">
+<meta property="og:image" content="https://magikh0e.pl/img/pubhomeautomationlogo-og.jpg">
+<meta property="og:url" content="https://magikh0e.pl/pubHomeAutomation/alarm-system.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="magikh0e.pl">
+<link rel="preload" as="image" href="https://magikh0e.pl//img/pubhomeautomationlogo.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="https://magikh0e.pl//fonts/JetBrainsMono-latin.woff2" crossorigin fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="https://magikh0e.pl//fonts/VT323-latin.woff2" crossorigin fetchpriority="high">
+<link rel="stylesheet" type="text/css" href="https://magikh0e.pl//magik.css?v=f07550f7">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Home Assistant — Simple DIY Alarm System",
+  "description": "Self-hosted HA alarm using contact + motion sensors, TTS, RGB feedback, PTZ tracking, privacy mode, and smart door locks. Full YAML configs.",
+  "url": "https://magikh0e.pl/pubHomeAutomation/alarm-system.html",
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://magikh0e.pl/pubHomeAutomation/alarm-system.html"},
+  "image": "https://magikh0e.pl/img/pubhomeautomationlogo-og.png",
+  "datePublished": "2026-01-15T00:00:00Z",
+  "dateModified": "2026-05-19T00:00:00Z",
+  "wordCount": 5184,
+  "proficiencyLevel": "Intermediate",
+  "author": {"@type": "Person", "name": "magikh0e", "url": "https://magikh0e.pl/"},
+  "publisher": {
+    "@type": "Person",
+    "name": "magikh0e",
+    "url": "https://magikh0e.pl/",
+    "logo": {"@type": "ImageObject", "url": "https://magikh0e.pl/img/logo2026.png?v=5008ba8b"}
+  },
+  "isPartOf": {"@type": "WebSite", "name": "magikh0e.pl", "url": "https://magikh0e.pl/"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://magikh0e.pl/"},
+    {"@type": "ListItem", "position": 2, "name": "Home Automation", "item": "https://magikh0e.pl/pubHomeAutomation/"},
+    {"@type": "ListItem", "position": 3, "name": "Simple DIY Alarm System", "item": "https://magikh0e.pl/pubHomeAutomation/alarm-system.html"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is this a monitored alarm system?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. There's no central station and no police dispatch — it sends push notifications to your phone. For real security, layer this with a monitored service (SimpliSafe, Ring, etc.) or at minimum route notifications through a channel you'll actually wake up to."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if Home Assistant goes down or my network drops?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The alarm stops working — single point of failure. If HA is down, your network is dropped, or your phone is on do-not-disturb, no notification fires. Commercial alarm systems carry cellular backup specifically for this. This one carries hopes and dreams."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I handle WiFi camera motion sensors going offline?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "WiFi cameras drop offline periodically. Layer on a 'device unavailable' alert so you know when a sensor stops reporting — a simple automation that triggers when the binary_sensor goes to 'unavailable' for 5+ minutes and sends you a notification. Full YAML on the guide page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What text-to-speech engine should I use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Local Piper (tts.piper), a neural TTS that runs in HA via the Wyoming protocol. Install it from Settings → Add-ons → Piper, then configure the integration. Everything stays on-LAN — no internet round-trip per announcement, no subscription. Cloud alternatives (tts.home_assistant_cloud via Nabu Casa, tts.google_translate_en_com) work too if you prefer; only the media_content_id URL prefix changes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is TTS + flashing lights really enough of a deterrent?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It's a deterrent, not a real deterrent. A Zigbee siren ($25 — Heiman, Frient, etc.) wired into the response automation is a serious upgrade. Add a switch.alarm_siren entity to the armed_triggered action and the intruder gets 110 dB instead of a friendly TTS voice."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How secure is the alarm code stored in secrets.yaml?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not particularly. The !secret alarm_code reference reads from secrets.yaml in plaintext — that file belongs in your local backup workflow, not in git or screenshots. The code only protects against casual dashboard access; anyone with shell on your HA box can read it. Treat it as a UX gate, not a security boundary."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which smart lock platforms work for the door-lock integration?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Z-Wave (Schlage Connect, Yale Assure, Kwikset 914/916) has the best PIN-management story and integrates locally via Z-Wave JS. Zigbee locks (Yale, Aqara U200) work via Zigbee2MQTT. Matter locks have native HA support but PIN handling is still maturing. Cloud-only locks (August/Yale Access, Wyze, Level Bolt) work but depend on the vendor cloud — auto-lock and disarm-via-PIN both break when the vendor service is down. Prefer local protocols when you have the choice."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can a smart lock PIN disarm the alarm?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Most Z-Wave and Zigbee locks support per-user PIN slots (typically 1–30). Configure each slot with a name in the lock integration, then watch the zwave_js_notification (or equivalent) event with command_class_name 'Access Control'. Dispatch by slot ID — give the cleaning service a code that disarms during their window only, give kids their own code so you know who came home, and rotate compromised codes without re-keying. Full YAML on the guide page."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body class="page-section section-homeauto">
+    <div id="wrapper">
+        <a href="#contentwrap" class="skip-link">Skip to content</a>
+        <header id="headerwrap">
+            <div id="header">
+                <picture><source srcset="https://magikh0e.pl//img/pubhomeautomationlogo.webp" type="image/webp"><img src="https://magikh0e.pl//img/pubhomeautomationlogo.png" alt="Home Automation &mdash; magikh0e.pl" width="700" height="700" class="header-logo" fetchpriority="high"></picture>
+            </div>
+        </header>
+
+        <nav id="navigationwrap" aria-label="Primary">
+            <div id="navigation">
+                <a href="/pubCode/">Projects</a>
+                <a href="/pubHardwareHacking/">Hardware</a>
+                <a href="/pubCarHacking/">CarHacking</a>
+                <a href="/pubPapers/">Guides</a>
+                <a href="/exploits/">Exploits</a>
+                <a href="/pubPresentations/">Talks</a>
+                <a href="/links.html">Links</a>
+            </div>
+        </nav>
+
+        <main id="contentwrap">
+
+<section><h1>[ Home Assistant: Simple DIY Alarm System ]</h1></section>
+
+<div class="t-mb">
+    <a href="/pubHomeAutomation/">&larr; back to Home Automation</a>
+</div>
+
+<div class="t-mb">
+    [ <a href="#overview">Overview</a> |
+      <a href="#step1">Step 1 &mdash; Panel</a> |
+      <a href="#step2">Step 2 &mdash; Detection</a> |
+      <a href="#step3">Step 3 &mdash; Response</a> |
+      <a href="#step4">Step 4 &mdash; RGB feedback</a> |
+      <a href="#step5">Step 5 &mdash; PTZ tracking</a> |
+      <a href="#step6">Step 6 &mdash; Privacy mode</a> |
+      <a href="#step7">Step 7 &mdash; Door locks</a> |
+      <a href="#optional">Optional</a> |
+      <a href="#caveats">Caveats</a> ]
+</div>
+
+
+<section id="overview"><h2>[ Overview ]</h2></section>
+<pre class="content">A simple, self-contained DIY alarm system built on top of Home Assistant.
+Uses whatever contact + motion sensors you already have, an
+<i>alarm_control_panel</i> entity for arm/disarm state, and TTS + flashing
+lights as the response when something trips.
+
+Three modes, distinct trigger sets:
+
+  <b>armed_home</b>   perimeter only (you're inside, motion is fine)
+  <b>armed_night</b>  perimeter only, interior doors excluded
+                so you can pee at 3am without setting it off
+  <b>armed_away</b>   everything &mdash; perimeter, interior, and motion
+
+The example below assumes a small set of sensors (front + rear contact,
+one bedroom contact, one kitchen motion) but the pattern scales to any
+number of sensors &mdash; just append entity_ids to the right trigger lists.
+
+<b>Example sensor map</b>
+
+  Sensor          Entity                                            Type     Location
+  ─────────────────────────────────────────────────────────────────────────────────────
+  Front Door      binary_sensor.front_door_door                     contact  Living Room
+  Rear/Sliding    binary_sensor.rear_door_door                      contact  Living Room
+  Bedroom Door    binary_sensor.bedroom_door_door                   contact  Bedroom (interior)
+  Kitchen Motion  binary_sensor.camera_e1_5295_motion_sensor        motion   Kitchen
+
+The bedroom door is interior, so it's excluded from <i>armed_night</i> &mdash; otherwise a
+2am bathroom trip would trigger the siren on yourself.
+</pre>
+
+
+<section id="step1"><h2>[ Step 1 &mdash; The Alarm Panel ]</h2></section>
+<pre class="content">Drop this in <i>configuration.yaml</i>. It creates the
+<i>alarm_control_panel.home_alarm</i> entity that everything else hangs off
+of. After saving, restart Home Assistant.
+</pre>
+
+<pre class="content" data-lang="yaml"># configuration.yaml
+alarm_control_panel:
+  - platform: manual
+    name: Home Alarm
+    code: !secret alarm_code            # set this in secrets.yaml, e.g. alarm_code: "1234"
+    code_arm_required: false            # don't require code to arm, only to disarm
+    arming_time: 30                     # 30s grace period to leave after arming
+    delay_time: 20                      # 20s entry delay before triggering
+    trigger_time: 600                   # alarm sirens for 10 minutes
+    disarmed:
+      trigger_time: 0
+    armed_home:
+      arming_time: 0                    # arming home = instant, you're already there
+      delay_time: 0                     # no entry delay in home mode (instant alarm)
+    armed_night:
+      arming_time: 0
+      delay_time: 20
+    armed_away:
+      arming_time: 30
+      delay_time: 20
+</pre>
+
+<pre class="content">After restart you'll have <i>alarm_control_panel.home_alarm</i> as a state
+machine, plus a Lovelace card you can drop on a dashboard for arm/disarm
+buttons. The arm code is enforced on disarm only &mdash; arming with a single
+tap, disarm requires the PIN. Adjust to taste.
+</pre>
+
+
+<section id="step2"><h2>[ Step 2 &mdash; Detection automations ]</h2></section>
+<pre class="content">Three automations watch the sensors. Each one fires
+<i>alarm_control_panel.alarm_trigger</i> when its conditions are met &mdash;
+the panel itself handles the entry-delay countdown and state machine.
+
+Place these in <i>automations.yaml</i> (or wherever you keep
+automations).
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml
+
+# Perimeter trigger — fires in ALL armed modes
+- alias: "Alarm: Perimeter breach"
+  description: "Front or rear door opened while alarm is armed"
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.front_door_door
+        - binary_sensor.rear_door_door
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state:
+        - armed_home
+        - armed_away
+        - armed_night
+  action:
+    - action: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+
+# Interior trigger — only in away mode (home/night = you're inside)
+- alias: "Alarm: Interior motion"
+  description: "Kitchen motion while armed away"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.camera_e1_5295_motion_sensor
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+  action:
+    - action: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+
+# Bedroom door — only in away mode (otherwise the bathroom trip rule)
+- alias: "Alarm: Bedroom door (away only)"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.bedroom_door_door
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+  action:
+    - action: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+</pre>
+
+
+<section id="step3"><h2>[ Step 3 &mdash; Response automations ]</h2></section>
+<pre class="content">When the panel transitions states, these fire the actual response &mdash; entry
+warning, full alarm, and a disarm confirmation. The pattern is to watch
+state changes <i>on the panel itself</i>, not on the sensors, so you don't
+have to duplicate "is it armed?" logic everywhere.
+</pre>
+
+<pre class="content" data-lang="yaml"># When the alarm enters "pending" (entry delay countdown), warn first
+- alias: "Alarm: Entry warning"
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to: pending
+  action:
+    - action: media_player.play_media
+      target:
+        entity_id: media_player.nest_display
+      data:
+        media_content_id: >-
+          media-source://tts/tts.piper?message=Alarm+will+trigger+in+twenty+seconds.+Disarm+now.&amp;language=en_US
+        media_content_type: audio/mp3
+
+# When the alarm actually triggers — full response
+- alias: "Alarm: Triggered response"
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to: triggered
+  action:
+    # 1. Push notification with high priority
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🚨 ALARM TRIGGERED"
+        message: "Security system has been triggered at home."
+        data:
+          priority: high
+          ttl: 0
+    # 2. Loud TTS on every available speaker
+    - action: media_player.volume_set
+      target:
+        entity_id:
+          - media_player.nest_display
+          - media_player.m5stack_atom_echo_a17a48
+      data:
+        volume_level: 1.0
+    - action: media_player.play_media
+      target:
+        entity_id:
+          - media_player.nest_display
+          - media_player.m5stack_atom_echo_a17a48
+      data:
+        media_content_id: >-
+          media-source://tts/tts.piper?message=Intruder+Alert!&amp;language=en_US
+        media_content_type: audio/mp3
+    # 3. After TTS finishes, cast a YouTube video to the Nest display
+    #    (Google Cast handles video/youtube content type natively).
+    - delay: "00:00:03"
+    - action: media_player.play_media
+      target:
+        entity_id: media_player.nest_display
+      data:
+        media_content_id: https://www.youtube.com/watch?v=04F4xlWSFh0
+        media_content_type: video/youtube
+    # 4. Flash all lights red as a deterrent + visibility
+    - repeat:
+        count: 30
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+                - light.living_room_lights
+                - light.bedroom_lights
+            data:
+              brightness: 255
+              rgb_color: [255, 0, 0]
+          - delay: "00:00:01"
+          - action: light.turn_off
+            target:
+              entity_id:
+                - light.living_room_lights
+                - light.bedroom_lights
+          - delay: "00:00:01"
+
+# When disarmed, send confirmation
+- alias: "Alarm: Disarmed"
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to: disarmed
+  action:
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        message: "Alarm disarmed at {{ now().strftime('%I:%M %p') }}"
+</pre>
+
+
+<section id="step4"><h2>[ Step 4 &mdash; RGB light feedback ]</h2></section>
+<pre class="content">Visual feedback for state changes &mdash; bulbs flash blue when you arm,
+green when you disarm, breathe amber during the entry-delay countdown,
+and the existing red strobe handles intruder alerts. Makes the alarm
+state obvious from across the room without staring at a dashboard.
+
+First, group your RGB bulbs into a single <i>light.alarm_lights</i>
+entity so the automations target one thing instead of repeating an
+entity_id list everywhere. Add this to <i>configuration.yaml</i>
+alongside the alarm_control_panel block from Step 1.
+</pre>
+
+<pre class="content" data-lang="yaml"># configuration.yaml
+light:
+  - platform: group
+    name: Alarm Lights
+    entities:
+      - light.living_room_lights
+      - light.bedroom_lights
+      - light.kitchen_lights
+</pre>
+
+<pre class="content">After restart you'll have <i>light.alarm_lights</i> covering every
+bulb. Now the feedback automations &mdash; drop these in
+<i>automations.yaml</i>.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — RGB light feedback
+
+# Armed → quick double blue flash to confirm the arm action.
+# Fires for any of the three armed states so you get the same visual
+# regardless of how you armed (manual / auto-arm / presence-based).
+- alias: "Alarm: Light feedback — armed"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to:
+        - armed_home
+        - armed_night
+        - armed_away
+  action:
+    # Snapshot current light state so we can restore it after the flash
+    - action: scene.create
+      data:
+        scene_id: alarm_lights_before
+        snapshot_entities: light.alarm_lights
+    - repeat:
+        count: 2
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.alarm_lights
+            data:
+              brightness: 200
+              rgb_color: [0, 100, 255]    # blue
+              transition: 0
+          - delay: "00:00:00.4"
+          - action: light.turn_off
+            target:
+              entity_id: light.alarm_lights
+            data:
+              transition: 0
+          - delay: "00:00:00.4"
+    # Restore whatever the lights were doing before
+    - action: scene.turn_on
+      target:
+        entity_id: scene.alarm_lights_before
+
+# Disarmed → single green pulse confirming "all clear"
+- alias: "Alarm: Light feedback — disarmed"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to: disarmed
+  action:
+    - action: scene.create
+      data:
+        scene_id: alarm_lights_before
+        snapshot_entities: light.alarm_lights
+    - action: light.turn_on
+      target:
+        entity_id: light.alarm_lights
+      data:
+        brightness: 200
+        rgb_color: [50, 255, 80]          # green
+        transition: 0
+    - delay: "00:00:01.5"
+    - action: scene.turn_on
+      target:
+        entity_id: scene.alarm_lights_before
+
+# Pending (entry-delay countdown) → amber breathing pulse
+# Stops automatically when the panel leaves "pending" — either you
+# disarmed in time, or the alarm tripped and Step 3's red flash takes
+# over. mode: restart so a fresh entry resets cleanly.
+- alias: "Alarm: Light feedback — entry delay"
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to: pending
+  action:
+    - action: scene.create
+      data:
+        scene_id: alarm_lights_before
+        snapshot_entities: light.alarm_lights
+    - repeat:
+        while:
+          - condition: state
+            entity_id: alarm_control_panel.home_alarm
+            state: pending
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: light.alarm_lights
+            data:
+              brightness: 255
+              rgb_color: [255, 140, 0]    # amber
+              transition: 0
+          - delay: "00:00:00.6"
+          - action: light.turn_off
+            target:
+              entity_id: light.alarm_lights
+            data:
+              transition: 0
+          - delay: "00:00:00.6"
+    # Restore prior state if we exited because of disarm
+    # (if we exited because of trigger, Step 3 takes over and
+    # this scene.turn_on is harmlessly overwritten by the red flash)
+    - action: scene.turn_on
+      target:
+        entity_id: scene.alarm_lights_before
+</pre>
+
+<pre class="content"><b>Color cheat sheet</b>
+
+  <b>blue</b>     [0, 100, 255]    armed (any mode)
+  <b>green</b>    [50, 255, 80]    disarmed / all clear
+  <b>amber</b>    [255, 140, 0]    pending (entry delay countdown)
+  <b>red</b>      [255, 0, 0]      triggered (Step 3, already wired)
+
+The <i>scene.create</i> &rarr; flash &rarr; <i>scene.turn_on</i>
+sandwich is the canonical "pulse without disrupting" pattern in HA.
+Without it, every arm/disarm would turn off whatever lights you had
+on. With it, your reading lamp keeps its warm-2700K glow once the
+blue confirmation flash finishes.
+
+<b>Refactoring tip</b>
+The Step 3 red-flash response still uses
+<i>light.living_room_lights</i> and <i>light.bedroom_lights</i>
+directly. Now that <i>light.alarm_lights</i> exists, you can swap
+those entity_ids for the group and lose a few lines.
+</pre>
+
+
+<section id="step5"><h2>[ Step 5 &mdash; PTZ camera + presence-driven tracking ]</h2></section>
+<pre class="content">A pan/tilt/zoom camera turns "something tripped the motion sensor" into
+"I have a face on file." When a presence or motion sensor fires, the
+camera pivots to that zone's preset, settles, snaps a still, and sends
+the image to your phone alongside the alert push.
+
+This pairs naturally with the alarm: while <i>armed_away</i>, every
+zone trip captures evidence; while <i>disarmed</i>, the camera stays
+quiet so it isn't snapping you reading on the couch.
+
+<b>One-time setup &mdash; store presets on the camera</b>
+
+Use the camera's web UI (or a tool like ONVIF Device Manager) to drive
+the gimbal to each zone in turn and save it as a numbered preset.
+Cameras typically support 8&ndash;255 preset slots; small cameras
+like a Reolink E1 hold 64. The token you'll reference in YAML is
+just the preset slot number as a string.
+
+  Preset 1 &rarr; Living Room
+  Preset 2 &rarr; Kitchen
+  Preset 3 &rarr; Front Entry
+  Preset 4 &rarr; Hallway
+  Preset 0 &rarr; "home" / idle position (camera returns here
+                  after a few minutes of quiet)
+
+<b>Motion vs. presence sensors</b>
+
+  <b>PIR motion</b> (Aqara P1, Hue, Zigbee multi-sensors) &mdash;
+  cheap, battery-powered, fires on initial movement then has a
+  cooldown. Misses a stationary intruder. Best for hallways and
+  doorways where the target moves through.
+
+  <b>mmWave presence</b> (Aqara FP2, LD2410/LD2412 ESPHome boards,
+  Apollo MSR, Everything Presence One) &mdash; radar-based,
+  detects breathing/sub-cm motion. Holds &quot;on&quot; while
+  someone's in the room even if they sit still. Best for rooms
+  where dwell time matters. Mostly mains-powered.
+
+  Both expose <i>binary_sensor.&lt;name&gt;_presence</i> or
+  <i>_occupancy</i> &mdash; the YAML pattern below works the same
+  for either.
+
+<b>Example sensor-to-zone map</b>
+
+  Sensor                                      Zone           Preset
+  ─────────────────────────────────────────────────────────────────
+  binary_sensor.living_room_presence          Living Room    1
+  binary_sensor.kitchen_motion                Kitchen        2
+  binary_sensor.front_door_door               Front Entry    3
+  binary_sensor.hallway_presence              Hallway        4
+</pre>
+
+<pre class="content">The DRY version &mdash; one automation, a lookup table mapping each
+sensor to its preset + label, and a single snap/notify action chain
+that runs regardless of which sensor tripped. Adding a new zone is a
+two-line edit to the table, not a new automation.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — PTZ tracking
+
+- alias: "PTZ: Track motion to zone"
+  description: "When armed_away, pan to the tripped zone, snap, and notify"
+  mode: queued        # queue triggers so rapid sequential motion doesn't lose snapshots
+  max: 5
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_presence
+        - binary_sensor.kitchen_motion
+        - binary_sensor.front_door_door
+        - binary_sensor.hallway_presence
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+  variables:
+    # Lookup table: sensor entity_id → { preset_token, human label }
+    zones:
+      binary_sensor.living_room_presence: { preset: "1", label: "Living Room" }
+      binary_sensor.kitchen_motion:       { preset: "2", label: "Kitchen" }
+      binary_sensor.front_door_door:      { preset: "3", label: "Front Entry" }
+      binary_sensor.hallway_presence:     { preset: "4", label: "Hallway" }
+    zone: "{{ zones[trigger.entity_id] }}"
+    stamp: "{{ now().strftime('%Y%m%d_%H%M%S') }}"
+    file_path: "/config/www/snapshots/ptz_{{ stamp }}.jpg"
+    web_path: "/local/snapshots/ptz_{{ stamp }}.jpg"
+  action:
+    # 1. Move the gimbal to the zone preset
+    - action: onvif.ptz
+      target:
+        entity_id: camera.ptz_main
+      data:
+        preset_token: "{{ zone.preset }}"
+
+    # 2. Wait for the camera to settle and re-focus
+    - delay: "00:00:03"
+
+    # 3. Capture a still
+    - action: camera.snapshot
+      target:
+        entity_id: camera.ptz_main
+      data:
+        filename: "{{ file_path }}"
+
+    # 4. Push notification with snapshot attached
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🎥 Motion: {{ zone.label }}"
+        message: "{{ now().strftime('%I:%M %p') }} — snapshot captured"
+        data:
+          image: "{{ web_path }}"
+          ttl: 0
+          priority: high
+</pre>
+
+<pre class="content"><b>Return-to-home</b>
+
+After a flurry of zone-trips the camera ends up parked at whichever
+preset fired last. A separate automation parks it back at preset 0
+(or wherever you like to leave it) once everything has been quiet
+for a while.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — PTZ idle return
+
+- alias: "PTZ: Return to home"
+  description: "Park the gimbal at the home preset after 5 min of no zone trips"
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_presence
+        - binary_sensor.kitchen_motion
+        - binary_sensor.front_door_door
+        - binary_sensor.hallway_presence
+      to: "off"
+      for: "00:05:00"
+  condition:
+    # Only re-park if every zone is currently quiet
+    - condition: state
+      entity_id: binary_sensor.living_room_presence
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.kitchen_motion
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.front_door_door
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.hallway_presence
+      state: "off"
+  action:
+    - action: onvif.ptz
+      target:
+        entity_id: camera.ptz_main
+      data:
+        preset_token: "0"
+</pre>
+
+<pre class="content"><b>Bonus &mdash; attach a snapshot to the main alarm trigger</b>
+
+The triggered-response automation in Step 3 already pushes a notification
+when something fires the alarm. With PTZ wired up, you can chain a
+snapshot of whichever zone tripped first into that push so the alert
+that wakes you up has a face attached. Insert this between the existing
+&quot;<i>Push notification</i>&quot; step and the TTS step:
+</pre>
+
+<pre class="content" data-lang="yaml">    # 1b. Snapshot whichever zone tripped most recently
+    - action: camera.snapshot
+      target:
+        entity_id: camera.ptz_main
+      data:
+        filename: "/config/www/snapshots/alarm_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg"
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🚨 ALARM TRIGGERED"
+        message: "Snapshot from PTZ — {{ now().strftime('%I:%M %p') }}"
+        data:
+          image: "/local/snapshots/alarm_{{ now().strftime('%Y%m%d_%H%M%S') }}.jpg"
+          priority: high
+          ttl: 0
+</pre>
+
+<pre class="content"><b>PTZ caveats</b>
+
+  <b>1. Mechanical wear.</b>
+     The gimbal motors aren't rated for thousands of trips per day.
+     The <i>queued / max: 5</i> mode on the tracking automation is a
+     soft limit; if a zone fires every minute, consider a
+     <i>throttle</i> condition (e.g., &quot;not within 30s of last
+     run&quot;) to keep the motors alive.
+
+  <b>2. Settling time.</b>
+     The 3-second delay before the snapshot is the camera's pan
+     speed plus its autofocus settle time. Fast PTZs (Reolink RLC-823A)
+     can do ~1.5s; slower gimbals (Hikvision IP Speed Domes) need 4&ndash;5s.
+     Tune to your specific camera.
+
+  <b>3. Snapshot path.</b>
+     <i>/config/www/</i> is HA's web-exposed directory &mdash; files
+     dropped there are reachable at <i>/local/&lt;path&gt;</i> from
+     the LAN, which is what the mobile app fetches the notification
+     image from. Different paths break the attached-image flow.
+
+  <b>4. Storage.</b>
+     One snapshot per zone-trip adds up. Pair this with a daily
+     automation that wipes <i>/config/www/snapshots/</i> entries
+     older than N days, or pipe to S3 / a NAS share if you want
+     to keep evidence longer.
+
+  <b>5. mmWave false positives.</b>
+     Ceiling fans, HVAC vents, water vapor from showers, and curtain
+     movement can all trigger 24GHz radar. Place sensors thoughtfully
+     and use the per-sensor sensitivity sliders. PIR is more
+     selective by nature but pays for it with dwell-time blindness.
+</pre>
+
+
+<section id="step6"><h2>[ Step 6 &mdash; Privacy mode (camera off when home) ]</h2></section>
+<pre class="content">Step 5 wakes the camera up when the alarm is armed and someone trips a
+zone. Step 6 is the inverse: as soon as <i>anyone is home</i>, the
+camera goes into a privacy mode that keeps it from filming you making
+coffee, walking to the bathroom, or reading on the couch.
+
+Two signals decide whether someone's home:
+
+  <b>Phone presence</b> &mdash; the Home Assistant companion app
+  publishes <i>person.&lt;you&gt;</i> with state <i>home</i> /
+  <i>not_home</i> based on phone GPS + your defined Home zone. Combine
+  multiple <i>device_tracker.*</i> entities into a single
+  <i>person.*</i> for redundancy (phone + watch + laptop &mdash; if
+  any of them is home, you're home).
+
+  <b>Indoor presence sensors</b> &mdash; the same mmWave / PIR sensors
+  driving Step 5's tracking. Useful for guests, kids, and roommates
+  who don't have HA on their phone. Also catches the case where your
+  phone died but you're physically inside.
+
+A template binary_sensor folds both into a single
+<i>binary_sensor.someone_home</i> that the privacy automations watch.
+The <i>delay_off</i> grace period prevents the sensor from flickering
+off every time a presence sensor cools down between motion events.
+
+<b>What &quot;privacy mode&quot; means in YAML</b>
+
+Privacy mode is a stack &mdash; layer as many of these as your hardware
+supports, because each one alone has a failure mode the others cover:
+
+  <b>1. PTZ to a wall-facing preset (do this always).</b>
+     Save a preset (e.g., slot 99) where the gimbal physically points
+     at a blank wall, the ceiling, or into a sock. <i>For cameras
+     without a hardware shutter, this preset IS your privacy
+     mechanism</i> &mdash; the lens still sees, but it sees nothing
+     useful. Pick a wall, not a ceiling, if your wall is closer than
+     the camera's minimum focus distance &mdash; out-of-focus blur
+     is bonus privacy.
+
+  <b>2. Hardware shutter (if your camera has one).</b>
+     Eufy indoor cams, Reolink E1 Outdoor, and a few others have a
+     motorized lens cover. Most integrations expose this as
+     <i>switch.&lt;cam&gt;_privacy_mode</i>. This is the only
+     privacy mechanism that's cryptographically certain &mdash; the
+     lens is physically blind regardless of firmware state.
+
+  <b>3. Stop recording at the camera.</b>
+     Vendor switches like <i>switch.&lt;cam&gt;_record</i>,
+     <i>_motion_detection</i>, <i>_record_audio</i>,
+     <i>_ftp_upload</i>, <i>_email</i>. Toggling these stops the
+     camera from persisting clips locally or shipping them to a
+     cloud you don't want them on.
+
+  <b>4. Stop the stream into HA.</b>
+     <i>camera.turn_off</i> tells the integration to stop pulling
+     RTSP from the camera. Kills any HA-side recording (Frigate,
+     LLAT, NVR add-on) without touching the camera itself.
+
+  <b>5. Disable the Step 5 tracking automation.</b>
+     Belt-and-suspenders: even if a frame somehow leaked through,
+     no automation will snap it and push it to your phone.
+
+The example below stacks all five.
+</pre>
+
+<pre class="content" data-lang="yaml"># configuration.yaml — composite "someone is home" sensor
+
+template:
+  - binary_sensor:
+      - name: "Someone Home"
+        unique_id: someone_home
+        # ON when ANY tracker says home OR ANY presence sensor is active
+        state: >-
+          {{ is_state('person.magikh0e', 'home')
+             or is_state('person.partner', 'home')
+             or is_state('binary_sensor.living_room_presence', 'on')
+             or is_state('binary_sensor.bedroom_presence', 'on')
+             or is_state('binary_sensor.kitchen_motion', 'on')
+             or is_state('binary_sensor.hallway_presence', 'on') }}
+        # 5-minute grace so a brief presence dropout doesn't
+        # spin the camera up while you're still in the room.
+        delay_off: "00:05:00"
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — privacy mode
+
+# Engage privacy mode the moment anyone is home
+- alias: "Privacy: Engage when someone home"
+  description: "Wall-face the gimbal, kill recording + stream, disable tracking"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.someone_home
+      to: "on"
+  action:
+    # 1. Pivot the lens to the wall-facing privacy preset.
+    #    For cameras without a hardware shutter, this is the
+    #    primary privacy mechanism — make sure the preset is
+    #    actually saved and points somewhere blind.
+    - action: onvif.ptz
+      target:
+        entity_id: camera.ptz_main
+      data:
+        preset_token: "99"
+
+    # 2. Hardware shutter (if your camera has one — skipped
+    #    silently otherwise via continue_on_error)
+    - action: switch.turn_on
+      target:
+        entity_id: switch.ptz_main_privacy_mode
+      continue_on_error: true
+
+    # 3. Stop recording at the camera. List every persistence
+    #    switch your model exposes — recording, motion-triggered
+    #    clips, audio capture, FTP upload, email alerts. Skip any
+    #    switch your camera doesn't have via continue_on_error.
+    - action: switch.turn_off
+      target:
+        entity_id:
+          - switch.ptz_main_record
+          - switch.ptz_main_motion_detection
+          - switch.ptz_main_record_audio
+          - switch.ptz_main_ftp_upload
+          - switch.ptz_main_email
+      continue_on_error: true
+
+    # 4. Stop HA from pulling the RTSP stream. Kills any HA-side
+    #    NVR / Frigate / LLAT recording. The camera itself is
+    #    still up but no frames flow into HA.
+    - action: camera.turn_off
+      target:
+        entity_id: camera.ptz_main
+
+    # 5. Disable the Step 5 tracking automation so motion sensors
+    #    can't trigger a snapshot pipeline (would fail anyway with
+    #    the stream off, but no point spamming the log)
+    - action: automation.turn_off
+      target:
+        entity_id: automation.ptz_track_motion_to_zone
+
+    # 6. Confirm via push (one-time, no repeat) so you know it
+    #    engaged. Comment out once you trust it.
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🔒 Privacy mode"
+        message: "Camera blinded — someone home"
+
+# Disengage when the house has been empty for the grace window
+- alias: "Privacy: Disengage when no one home"
+  description: "Reverse all five privacy layers once everyone has left"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.someone_home
+      to: "off"
+  action:
+    # 1. Re-enable HA's stream pull first — the rest needs the
+    #    camera entity to be available
+    - action: camera.turn_on
+      target:
+        entity_id: camera.ptz_main
+
+    # 2. Lift the hardware shutter
+    - action: switch.turn_off
+      target:
+        entity_id: switch.ptz_main_privacy_mode
+      continue_on_error: true
+
+    # 3. Re-enable camera-side recording + alerts
+    - action: switch.turn_on
+      target:
+        entity_id:
+          - switch.ptz_main_record
+          - switch.ptz_main_motion_detection
+          - switch.ptz_main_record_audio
+          - switch.ptz_main_ftp_upload
+          - switch.ptz_main_email
+      continue_on_error: true
+
+    # 4. Park the gimbal at the home / idle preset
+    - action: onvif.ptz
+      target:
+        entity_id: camera.ptz_main
+      data:
+        preset_token: "0"
+
+    # 5. Re-enable Step 5 tracking
+    - action: automation.turn_on
+      target:
+        entity_id: automation.ptz_track_motion_to_zone
+
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🎥 Privacy mode lifted"
+        message: "House is empty — surveillance back on"
+</pre>
+
+<pre class="content"><b>Privacy caveats</b>
+
+  <b>1. Phone GPS is not instant.</b>
+     Cellular GPS-based <i>device_tracker</i> updates can lag
+     30&ndash;90 seconds when you walk in the door, especially
+     in dense urban areas. The mmWave sensor backstop kicks
+     privacy mode in fast even when GPS is still catching up.
+     If you're paranoid, add a Wi-Fi-based zone trigger
+     (router DHCP-lease integration) for instant detection.
+
+  <b>2. Hardware shutter beats software.</b>
+     A camera that physically closes its lens (Eufy, Reolink E1
+     Outdoor) gives you cryptographic certainty the lens is
+     blind. Software-only privacy modes are still trusting
+     the firmware not to silently keep streaming.
+
+  <b>3. Test the privacy preset.</b>
+     Before trusting it, view the live stream while privacy mode
+     is engaged and confirm the camera is actually pointed
+     somewhere harmless. <i>This matters most for no-shutter
+     cameras &mdash; the preset IS your only privacy mechanism</i>,
+     and any drift past the wall edge means the lens is back on
+     the room. Step 5's gimbal drives accumulate step-counter
+     error over time. Re-save the preset every few months and
+     spot-check the live stream as a routine.
+
+  <b>4. Guest mode.</b>
+     If a guest is over and you want surveillance off but their
+     phone isn't tracked, the indoor sensors still flag
+     <i>someone_home</i> and engage privacy mode. That's the
+     right default. To toggle <i>off</i> manually for a long
+     vacation while a house-sitter is over, expose
+     <i>input_boolean.privacy_override</i> and OR it into the
+     template above.
+
+  <b>5. Fail-safe orientation.</b>
+     If HA crashes mid-engage, the camera might be left in
+     whatever state it was last commanded into. Decide whether
+     your default-on-failure is &quot;privacy preserved&quot; or
+     &quot;surveillance running&quot; and arrange the trigger
+     directions accordingly. The example above prefers
+     surveillance-on as the failure default (trigger on
+     <i>off</i> restores the camera) &mdash; flip if you'd
+     rather privacy-on be the default.
+</pre>
+
+
+<section id="step7"><h2>[ Step 7 &mdash; Smart door locks ]</h2></section>
+<pre class="content">Smart locks turn doors into a two-way alarm signal: they're an
+<b>output</b> the alarm can drive (auto-lock when armed) and an
+<b>input</b> that can drive the alarm (forced entry, PIN-based
+disarm, lock-jammed states).
+
+A door lock with HA support exposes at minimum a
+<i>lock.&lt;name&gt;</i> entity (locked / unlocked / jammed states)
+and usually a <i>sensor.&lt;name&gt;_tampered</i> or similar
+diagnostic. Many also fire <i>lock_state_changed</i> events with
+a <i>code_slot</i> attribute &mdash; that's how you wire
+&quot;disarm with my PIN&quot; vs &quot;disarm with the cleaning
+service's PIN&quot;.
+
+<b>Supported platforms (most common)</b>
+
+  <b>Z-Wave</b>          Schlage Connect, Yale Assure, Kwikset 914/916.
+                         Native HA support via the Z-Wave JS
+                         integration. Best PIN-management story.
+  <b>Zigbee</b>           Yale YRD220, Aqara U200, Sonoff via Z2M.
+                         Z2M exposes <i>lock.&lt;name&gt;</i> plus
+                         per-slot PIN configuration.
+  <b>Matter</b>           Aqara U200, newer Yale models. Native HA
+                         support; PIN management is still maturing.
+  <b>Cloud-only</b>       August / Yale Access, Wyze Lock, Level Bolt.
+                         Work but require a cloud integration &mdash;
+                         the lock-via-internet failure mode is real.
+                         Prefer local protocols when you can.
+
+<b>Example lock map</b>
+
+  Lock            Entity                             Type      Location
+  ────────────────────────────────────────────────────────────────────
+  Front Door      lock.front_door                    Z-Wave    Front entry
+  Rear Door       lock.rear_door                     Z-Wave    Sliding patio
+  Garage Side     lock.garage_side                   Zigbee    Side entry
+
+Each one pairs with the <i>binary_sensor.&lt;name&gt;_door</i> contact
+sensor from Step 2's perimeter list &mdash; the contact reports
+whether the door is open, the lock reports whether the deadbolt is
+thrown.
+</pre>
+
+<pre class="content"><b>Auto-lock on arm.</b> The cleanest behavior: when you arm
+the alarm in any mode, every exterior lock throws automatically.
+No more &quot;wait, did I lock the back door?&quot; on the way
+to bed.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — auto-lock on arm
+
+- alias: "Locks: Auto-lock on arm"
+  description: "Engage every exterior lock when the alarm goes armed"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: alarm_control_panel.home_alarm
+      to:
+        - armed_home
+        - armed_night
+        - armed_away
+  action:
+    - action: lock.lock
+      target:
+        entity_id:
+          - lock.front_door
+          - lock.rear_door
+          - lock.garage_side
+    # Verify all locks reported "locked" within 10s; if any didn't,
+    # the lock may be jammed (deadbolt hitting the strike plate
+    # misaligned, etc.) — notify so you can physically check.
+    - delay: "00:00:10"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ not is_state('lock.front_door', 'locked')
+                   or not is_state('lock.rear_door', 'locked')
+                   or not is_state('lock.garage_side', 'locked') }}
+          sequence:
+            - action: notify.mobile_app_magikh0e_phone
+              data:
+                title: "🔓 Lock did not engage"
+                message: >-
+                  Front: {{ states('lock.front_door') }} ·
+                  Rear: {{ states('lock.rear_door') }} ·
+                  Garage: {{ states('lock.garage_side') }}
+                data:
+                  priority: high
+</pre>
+
+<pre class="content"><b>Disarm via PIN code.</b> Most Z-Wave / Zigbee locks
+support per-user codes (slots 1&ndash;30 typically). Configure each
+slot in the lock integration with a name, then watch the
+<i>lock_state_changed</i> event and dispatch by slot.
+
+This lets you give the cleaning service a code that
+disarms-and-unlocks during their window only, give kids their own
+code so you know who came home, and rotate compromised codes
+without re-keying the lock.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — disarm via authorized PIN
+
+- alias: "Locks: Disarm on authorized PIN"
+  description: "Unlocking with a known code slot disarms the alarm"
+  mode: single
+  trigger:
+    # Z-Wave JS fires this event when a code slot unlocks the door
+    - platform: event
+      event_type: zwave_js_notification
+      event_data:
+        command_class_name: "Access Control"
+        event_label: "Keypad unlock operation"
+  condition:
+    # Only act on our exterior locks
+    - condition: template
+      value_template: >-
+        {{ trigger.event.data.entity_id in
+           ['lock.front_door', 'lock.rear_door', 'lock.garage_side'] }}
+    # Only act on configured user slots (slot 0 = manufacturer/master)
+    - condition: template
+      value_template: "{{ trigger.event.data.parameters.userId | int > 0 }}"
+  variables:
+    # Lookup: user slot → human name (configure these in the lock
+    # integration to match)
+    slot_names:
+      "1": "magikh0e"
+      "2": "partner"
+      "3": "cleaning service"
+      "4": "house sitter"
+    user_name: "{{ slot_names[trigger.event.data.parameters.userId | string] | default('unknown') }}"
+  action:
+    # 1. Disarm the alarm
+    - action: alarm_control_panel.alarm_disarm
+      target:
+        entity_id: alarm_control_panel.home_alarm
+      data:
+        code: !secret alarm_code
+    # 2. Log who came in (audit trail beyond HA's history)
+    - action: logbook.log
+      data:
+        name: "Door entry"
+        message: "{{ user_name }} disarmed via {{ trigger.event.data.entity_id }}"
+        domain: lock
+    # 3. Optional welcome push so you know who arrived
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🔓 Door unlocked"
+        message: "{{ user_name }} entered through {{ trigger.event.data.entity_id }}"
+</pre>
+
+<pre class="content"><b>Trigger alarm on forced entry.</b> If a door
+contact reports &quot;open&quot; while its companion lock is
+still in the <i>locked</i> state, somebody pried the door
+open without unlocking. That's an unambiguous forced entry
+&mdash; trigger the alarm immediately, regardless of arm mode.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — forced entry detection
+
+- alias: "Locks: Forced entry detection"
+  description: "Contact open while lock still locked = pried door"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.front_door_door
+        - binary_sensor.rear_door_door
+      to: "on"
+  condition:
+    # If the matching lock is still "locked", the door was forced.
+    # The lock entity name follows the contact name minus "_door".
+    - condition: template
+      value_template: >-
+        {% set lock_id = trigger.entity_id
+             | replace('binary_sensor.', 'lock.')
+             | replace('_door', '') %}
+        {{ is_state(lock_id, 'locked') }}
+  action:
+    # Trigger regardless of arm state — forced entry is always wrong
+    - action: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🚨 FORCED ENTRY"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }} opened
+          while lock was still engaged.
+        data:
+          priority: high
+          ttl: 0
+</pre>
+
+<pre class="content"><b>Notify on unexpected unlock while armed.</b> Less
+alarming than forced entry but still suspicious: somebody unlocked
+the door (legitimately, with a key or PIN) while the alarm was
+armed_away. Could be a family member who forgot to use the disarm
+PIN, could be a problem &mdash; push a notification so you can
+ask.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — unexpected unlock while armed
+
+- alias: "Locks: Unexpected unlock while armed"
+  description: "Lock unlocked while armed_away with no preceding PIN slot"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id:
+        - lock.front_door
+        - lock.rear_door
+        - lock.garage_side
+      to: "unlocked"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+    # 5-second gate: if the PIN-disarm automation just ran, the panel
+    # is already transitioning to "disarmed" — skip this notification
+    # so authorized entry doesn't double-fire.
+    - condition: template
+      value_template: >-
+        {{ as_timestamp(now()) -
+           as_timestamp(states.alarm_control_panel.home_alarm.last_changed)
+           > 5 }}
+  action:
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "⚠ Unexpected unlock"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }} unlocked
+          while armed_away. Check who's home.
+        data:
+          priority: high
+</pre>
+
+<pre class="content"><b>Wrong-PIN lockout.</b> A burglar trying random
+keypad combinations should both trigger the alarm and lock the
+keypad out for a few minutes. Most lock integrations fire a
+distinct event on wrong-code attempts.
+</pre>
+
+<pre class="content" data-lang="yaml"># automations.yaml — wrong-PIN attempts
+
+- alias: "Locks: Trigger on repeated wrong PIN"
+  description: "3 wrong PIN attempts within 2 min = trigger the alarm"
+  mode: single
+  trigger:
+    - platform: event
+      event_type: zwave_js_notification
+      event_data:
+        event_label: "Keypad lock/unlock attempt — invalid code"
+  action:
+    # Bump a counter (helper: input_number.wrong_pin_count, max 10, step 1)
+    - action: input_number.increment
+      target:
+        entity_id: input_number.wrong_pin_count
+    # 3+ wrong attempts = treat as attack
+    - condition: template
+      value_template: "{{ states('input_number.wrong_pin_count') | int >= 3 }}"
+    - action: alarm_control_panel.alarm_trigger
+      target:
+        entity_id: alarm_control_panel.home_alarm
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        title: "🚨 Lock under attack"
+        message: "3+ wrong PIN attempts on a smart lock — alarm triggered"
+        data:
+          priority: high
+          ttl: 0
+
+# Reset the wrong-PIN counter after 2 minutes of no attempts
+- alias: "Locks: Reset wrong-PIN counter"
+  trigger:
+    - platform: state
+      entity_id: input_number.wrong_pin_count
+      for: "00:02:00"
+  condition:
+    - condition: numeric_state
+      entity_id: input_number.wrong_pin_count
+      above: 0
+  action:
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.wrong_pin_count
+      data:
+        value: 0
+</pre>
+
+<pre class="content"><b>Door-lock caveats</b>
+
+  <b>1. Battery-powered locks die.</b>
+     Most smart locks run on 4&times; AA. They report battery via
+     <i>sensor.&lt;name&gt;_battery</i> &mdash; wire a low-battery
+     notification at ~20% and a critical alert at ~10%. A dead
+     lock during a winter storm is its own emergency.
+
+  <b>2. Jammed-deadbolt failure mode.</b>
+     If a deadbolt is misaligned with the strike plate, the lock
+     motor stalls and reports <i>jammed</i>. The auto-lock
+     verification step above catches this, but the long-term fix
+     is mechanical &mdash; adjust the strike plate so the bolt
+     throws freely.
+
+  <b>3. PIN codes are not unique to the burglar.</b>
+     Most locks store codes in firmware that's been reverse-
+     engineered. Treat PIN-based disarm as a convenience layer
+     for known users, not a security boundary. The actual
+     security is the lock&apos;s mechanical bolt + the alarm
+     response automation.
+
+  <b>4. Cloud-only locks have an extra failure mode.</b>
+     August / Yale Access / Wyze require the vendor cloud to
+     unlock from HA &mdash; if their service is down, HA can't
+     drive the lock. The mechanical key still works, and the
+     keypad still works, but auto-lock and disarm-via-PIN both
+     break. Local-protocol locks (Z-Wave, Zigbee, Matter) don't
+     have this dependency.
+
+  <b>5. Key override always works.</b>
+     A smart lock with a keyway is only as secure as the keyway.
+     Bumping, picking, and snap-attacks all bypass the
+     electronics entirely. The forced-entry detection above
+     covers <i>pried</i> doors &mdash; it does not cover doors
+     that were keyed open. A separate contact-while-armed
+     trigger (Step 2) catches that case.
+
+  <b>6. Lock event names vary by integration.</b>
+     The YAML above uses <i>zwave_js_notification</i> event
+     types. Zigbee2MQTT exposes the same data via MQTT
+     <i>action</i> attributes; Matter via
+     <i>matter_node_event</i>. Pull the exact event name from
+     <i>Developer Tools &rarr; Events &rarr; Listen</i> while
+     you operate your specific lock model, then substitute it
+     into the triggers above.
+</pre>
+
+
+<section id="optional"><h2>[ Optional &mdash; Auto-arm ]</h2></section>
+<pre class="content">A scheduled auto-arm at midnight, in case you forget. Fires only if the
+panel is currently <i>disarmed</i> &mdash; won't disturb a manually-set state.
+Pair this with a presence-based <i>armed_away</i> automation for full
+hands-off coverage.
+</pre>
+
+<pre class="content" data-lang="yaml"># Auto-arm at midnight if not already armed
+- alias: "Alarm: Auto-arm at night"
+  trigger:
+    - platform: time
+      at: "00:00:00"
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: disarmed
+  action:
+    - action: alarm_control_panel.alarm_arm_night
+      target:
+        entity_id: alarm_control_panel.home_alarm
+      data:
+        code: !secret alarm_code
+</pre>
+
+
+<section id="caveats"><h2>[ &#9888; Caveats ]</h2></section>
+<pre class="content">Things to know before you trust this with your sleep schedule.
+
+  <b>1. This is not a monitored alarm.</b>
+     No central station, no police dispatch &mdash; just push notifications to
+     your phone. For real security, layer this with a monitored service
+     (SimpliSafe, Ring, etc.) <i>or</i> route notifications through a service
+     you'll actually wake up for.
+
+  <b>2. Single point of failure.</b>
+     If HA is down, your network is dropped, or your phone is on
+     do-not-disturb, the alarm doesn't work. Real systems carry cellular
+     backup. This one carries hopes and dreams.
+
+  <b>3. Wi-Fi cameras drop offline.</b>
+     If your motion sensor is built into a Wi-Fi camera, it'll go
+     unavailable periodically. Worth layering on a "device unavailable"
+     alert so you know if a sensor stops reporting:
+</pre>
+
+<pre class="content" data-lang="yaml">- alias: "Alarm: Sensor offline"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.camera_e1_5295_motion_sensor
+      to: "unavailable"
+      for: "00:05:00"
+  action:
+    - action: notify.mobile_app_magikh0e_phone
+      data:
+        message: "Kitchen motion sensor has been offline for 5+ min"
+</pre>
+
+<pre class="content">  <b>4. TTS provider &mdash; local Piper.</b>
+     The examples use <i>tts.piper</i>, a local neural TTS that runs
+     in HA via the Wyoming protocol. Install it from <i>Settings &rarr;
+     Add-ons &rarr; Piper</i>, then configure the integration so the
+     <i>tts.piper</i> entity exists. Everything stays on-LAN &mdash; no
+     internet round-trip per announcement, no subscription. If you'd
+     rather use a hosted voice, swap to <i>tts.home_assistant_cloud</i>
+     (Nabu Casa) or <i>tts.google_translate_en_com</i> (free, but
+     phones home to Google for every utterance). The
+     <i>media_content_id</i> URL prefix is the only thing that
+     changes.
+
+  <b>5. No real siren.</b>
+     TTS through a Nest display + flashing lights is a deterrent &mdash; not a
+     <i>real</i> deterrent. A Zigbee siren ($25 &mdash; Heiman, Frient, etc.)
+     wired into the response automation is a serious upgrade. Add a
+     <i>switch.alarm_siren</i> to the <i>armed_triggered</i> action and the
+     burglar gets a 110 dB welcome instead of a friendly TTS voice.
+
+  <b>6. Code in plaintext.</b>
+     <i>!secret alarm_code</i> reads from <i>secrets.yaml</i> &mdash; that file
+     belongs in your local backup workflow. Don't commit it to git, don't
+     paste it into screenshots. The code only protects against casual
+     dashboard access; anyone with shell on your HA box can read it.
+</pre>
+
+
+<section id="see-also" class="t-mt"><h2>[ See Also ]</h2></section>
+<div class="link-list">
+    <a href="snippets.html#front-door-open-alert">Door-left-open alert <span class="tree-comment"># the simpler door-monitoring snippet</span></a>
+    <a href="/pubHomeAutomation/">Home Automation index <span class="tree-comment"># back to the section index</span></a>
+    <a href="https://www.home-assistant.io/integrations/manual/" rel="noopener">HA &mdash; manual alarm panel docs <span class="tree-comment"># official reference</span></a>
+</div>
+
+        </main>
+
+        <footer id="footerwrap">
+            <div id="footer">
+                <span class="terminal-prompt">$</span> uptime: 1990&ndash;<span class="current-year"></span> &middot;
+                <a rel="me" href="https://infosec.exchange/@magikh0e">@magikh0e</a>
+            </div>
+        </footer>
+    </div>
+<script src="/txt-viewer.js?v=37d17d88" defer></script>
+<script src="/magik.js?v=81e3659d" defer></script>
+</body>
+</html>
