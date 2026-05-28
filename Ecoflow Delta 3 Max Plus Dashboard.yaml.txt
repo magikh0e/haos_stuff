@@ -1,0 +1,100 @@
+# EcoFlow Delta 3 Max Plus - Home Assistant dashboard
+#
+# For the tolwi/hassio-ecoflow-cloud integration on the public-API
+# (Developer accessKey/secretKey) path.
+#
+# SETUP:
+#   1. Every entity below uses the prefix `sensor.delta_3_max_plus_`.
+#      Your real prefix depends on your device's name in HA. Find it via
+#      Developer Tools -> States (filter "battery") and copy the part
+#      before "_main_battery_level".
+#   2. Find-and-replace `delta_3_max_plus` in this file with your prefix
+#      (e.g. `delta_3_max_plus_1753` if your device is "DELTA 3 Max Plus-1753").
+#   3. Paste into a dashboard via: Edit dashboard -> three-dot menu ->
+#      Raw configuration editor. (This is a full dashboard definition;
+#      replace the whole config, or copy the single view under `views:`.)
+
+views:
+  - type: sections
+    title: Delta 3 Max Plus
+    path: ecoflow
+    icon: mdi:battery-charging-high
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Battery
+          - type: gauge
+            entity: sensor.delta_3_max_plus_main_battery_level
+            name: Battery
+            min: 0
+            max: 100
+            needle: true
+            severity:
+              green: 50
+              yellow: 20
+              red: 0
+          - type: tile
+            entity: sensor.delta_3_max_plus_discharge_remaining_time
+            name: Time to empty
+          - type: tile
+            entity: sensor.delta_3_max_plus_charge_remaining_time
+            name: Time to full
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Power Flow
+          - type: tile
+            entity: sensor.delta_3_max_plus_total_in_power
+            name: Total In
+          - type: tile
+            entity: sensor.delta_3_max_plus_total_out_power
+            name: Total Out
+          - type: tile
+            entity: sensor.delta_3_max_plus_ac_in_power
+            name: AC In
+          - type: tile
+            entity: sensor.delta_3_max_plus_solar_in_power
+            name: Solar 1
+          - type: tile
+            entity: sensor.delta_3_max_plus_solar_2_in_power
+            name: Solar 2
+          - type: tile
+            entity: sensor.delta_3_max_plus_dc_out_power
+            name: DC 12V
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: USB Outputs
+          - type: tile
+            entity: sensor.delta_3_max_plus_type_c_1_out_power
+            name: USB-C 1
+          - type: tile
+            entity: sensor.delta_3_max_plus_type_c_2_out_power
+            name: USB-C 2
+          - type: tile
+            entity: sensor.delta_3_max_plus_type_c_3_out_power
+            name: USB-C 3
+          - type: tile
+            entity: sensor.delta_3_max_plus_usb_qc_1_out_power
+            name: USB-A 1
+          - type: tile
+            entity: sensor.delta_3_max_plus_usb_qc_2_out_power
+            name: USB-A 2
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Energy History
+          - type: statistics-graph
+            title: Energy (24h)
+            chart_type: bar
+            period: hour
+            days_to_show: 1
+            stat_types:
+              - sum
+            entities:
+              - sensor.delta_3_max_plus_total_in_energy
+              - sensor.delta_3_max_plus_total_out_energy
