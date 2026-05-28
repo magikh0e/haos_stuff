@@ -2,9 +2,9 @@
 Home assistant automations, dashboards, scripts etc...
 
 ## Custom dashboard for the AC Infinity integration for Home Assistant.
-[Custom HAOS AC Infinity Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/acinfinity_integration_dashboard) - Using AC Infinity wifi/ble controllers and sensorPush Hygrometers.
+[Custom HAOS AC Infinity Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/AC%20Infinity/acinfinity_integration_dashboard) - Using AC Infinity wifi/ble controllers and sensorPush Hygrometers.
 
-![AC Infinity HAOS Integration dashboard](https://github.com/magikh0e/haos_stuff/blob/main/ACInfinity%20Dashboard%20%E2%80%93%20Home%20Assistant.png?raw=true)
+![AC Infinity HAOS Integration dashboard](https://github.com/magikh0e/haos_stuff/blob/main/AC%20Infinity/ACInfinity%20Dashboard%20%E2%80%93%20Home%20Assistant.png?raw=true)
 
 
 ### <ins>Custom Cards used by dashboard, install via HACS..</ins>
@@ -21,9 +21,9 @@ Custom Tabbed Card: https://github.com/kinghat/tabbed-card
 Custom Number Box Card: https://github.com/junkfix/numberbox-card
 
 ## Custom dashboard for the EcoFlow Delta 3 Max Plus.
-[EcoFlow Delta 3 Max Plus Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/Ecoflow%20Delta%203%20Max%20Plus%20Dashboard.yaml) - For the [tolwi/hassio-ecoflow-cloud](https://github.com/tolwi/hassio-ecoflow-cloud) integration on the official Developer API (accessKey/secretKey) path.
+[EcoFlow Delta 3 Max Plus Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/EcoFlow/Ecoflow%20Delta%203%20Max%20Plus%20Dashboard.yaml) - For the [tolwi/hassio-ecoflow-cloud](https://github.com/tolwi/hassio-ecoflow-cloud) integration on the official Developer API (accessKey/secretKey) path.
 
-![EcoFlow Delta 3 Max Plus dashboard](https://github.com/magikh0e/haos_stuff/blob/main/Ecoflow%20Delta%203%20Max%20Plus%20Dashboard.png?raw=true)
+![EcoFlow Delta 3 Max Plus dashboard](https://github.com/magikh0e/haos_stuff/blob/main/EcoFlow/Ecoflow%20Delta%203%20Max%20Plus%20Dashboard.png?raw=true)
 
 Battery SoC + charge/discharge state, output controls (AC / AC2 / DC switches, X-Boost, beeper, backup reserve, bypass), SoC limit + backup-reserve sliders, real-time power flow (total in/out, AC input, 2x solar, 12V DC), per-port USB-C/USB-A output, and a 24h energy history chart.
 
