@@ -1,0 +1,26 @@
+# Dog Medication reminders — helpers + notify group.
+# Add the input_boolean block under your `input_boolean:` key (add the key if you
+# don't have one), and the notify group under your `notify:` key, in
+# configuration.yaml. One input_boolean per dose = "given today", reset daily by
+# the reset automation.
+
+input_boolean:
+  dog_meds_dose1:
+    name: Dog Meds — Morning
+    icon: mdi:pill
+  dog_meds_dose2:
+    name: Dog Meds — Afternoon
+    icon: mdi:pill
+  dog_meds_dose3:
+    name: Dog Meds — Evening
+    icon: mdi:pill
+
+# Reminders fan out to everyone in this group. HA already syncs the GIVEN state
+# (the input_booleans) across all Companion apps in real time — the group only
+# fans out the push notification to multiple people.
+notify:
+  - platform: group
+    name: dog_caretakers
+    services:
+      - service: mobile_app_phone            # replace with your phone's notify service
+      # - service: mobile_app_partner_phone  # add a second caretaker here
