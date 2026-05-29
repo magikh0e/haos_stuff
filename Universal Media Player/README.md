@@ -19,13 +19,13 @@ and surfaces the active child's state + metadata as one entity.
 
 ## Files
 
-- [bedroom-tv.yaml.txt](bedroom-tv.yaml.txt) — Hisense Google TV. Routes power-on
+- [bedroom-tv.yaml](bedroom-tv.yaml) — Hisense Google TV. Routes power-on
   to Android TV Remote (wakes from sleep), control/apps/volume to Android Debug
   Bridge, and pulls now-playing metadata from the Cast child.
-- [living-room-tv.yaml.txt](living-room-tv.yaml.txt) — LG webOS TV. Routes
+- [living-room-tv.yaml](living-room-tv.yaml) — LG webOS TV. Routes
   power-on to a Wake-on-LAN helper script, everything else to the webOS native
   entity, metadata from webOS.
-- [turn-on-living-room-tv.yaml.txt](turn-on-living-room-tv.yaml.txt) — the WoL
+- [turn-on-living-room-tv.yaml](turn-on-living-room-tv.yaml) — the WoL
   helper script the LG config uses for power-on.
 
 ## Setup
