@@ -1,0 +1,98 @@
+# ==============================================================================
+# Volcano Hybrid — auto-progress temperature over runtime
+# ------------------------------------------------------------------------------
+# Storz & Bickel Volcano Hybrid (BLE) connected to Home Assistant via the
+# community Volcano integration. Auto-walks the temperature up at 0/5/10/15/20
+# minutes of accumulated runtime, following the Vapesuvius temperature guide
+# (temps only — the time intervals here are 5min flat instead of Vapesuvius's
+# variable cadence so the automation stays tractable).
+#
+# Temperature ladder (°C):
+#
+#     0 min   → 179°C  (354°F)
+#     5 min   → 185°C  (365°F)
+#    10 min   → 191°C  (376°F)
+#    15 min   → 199°C  (390°F)
+#    20 min   → 205°C  (401°F)
+#
+# Reference: https://www.reddit.com/user/Vapesuvius/comments/zuwcs7/
+#
+# Companion files:
+#   - volcanoHybridStepTemp.yaml.txt  (manual ±step from a dimmer remote)
+#   - volcanoHybridFillBag.yaml.txt   (push-button bag-fill script)
+#   - volcanoHybridLovelace.yaml.txt  (dashboard tile with all controls)
+#   - volcanoHybridVoice.yaml.txt     (HA Assist voice commands)
+#
+# Slick pattern worth pointing out: each trigger's `id:` is set to the target
+# temperature value. The action then plugs `{{ trigger.id }}` straight into
+# climate.set_temperature, so adding a new step is a one-trigger edit instead
+# of a new branch in the action block.
+#
+# Dependencies:
+#   - SavageNL/home-assistant-volcano-hybrid integration (community HACS):
+#     https://github.com/SavageNL/home-assistant-volcano-hybrid
+#     Exposes the device as climate.volcano_hybrid plus
+#     sensor.volcano_hybrid_current_on_time and a handful of related
+#     sensors (current temp, target temp, fan/heater state, BLE RSSI).
+#   - Volcano firmware that reports current_on_time (most do; if yours
+#     doesn't, this approach won't work — fall back to wall-clock triggers)
+#
+# Retargeting:
+#   - Different vaporizer? Swap climate.volcano_hybrid for whatever your
+#     device exposes, and the on-time sensor for that device's runtime
+#     counter (or a helper input_datetime).
+#   - Want a different temperature curve? Edit the trigger `above:` values
+#     (the runtime checkpoints) and `id:` values (the target temps).
+# ==============================================================================
+
+
+alias: Volcano progress
+description: ""
+triggers:
+  - trigger: numeric_state
+    entity_id:
+      - sensor.volcano_hybrid_current_on_time
+    above: 0
+    id: "179"
+    alias: 0 => 179
+  - trigger: numeric_state
+    entity_id:
+      - sensor.volcano_hybrid_current_on_time
+    above: 5
+    id: "185"
+    alias: 5 => 185
+  - trigger: numeric_state
+    entity_id:
+      - sensor.volcano_hybrid_current_on_time
+    above: 10
+    id: "191"
+    alias: 10 => 191
+  - trigger: numeric_state
+    entity_id:
+      - sensor.volcano_hybrid_current_on_time
+    above: 15
+    id: "199"
+    alias: 15 => 199
+  - trigger: numeric_state
+    entity_id:
+      - sensor.volcano_hybrid_current_on_time
+    above: 20
+    id: "205"
+    alias: 20 => 205
+conditions:
+  - alias: Don't trigger when device reconnects
+    condition: and
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ trigger.from_state.state not in ['unknown','unavailable'] and
+          trigger.to_state.state not in ['unknown','unavailable'] }}
+        alias: from_state or to_state was unknown or unavailable
+actions:
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      temperature: "{{ trigger.id }}"
+    target:
+      entity_id: climate.volcano_hybrid
+mode: single
