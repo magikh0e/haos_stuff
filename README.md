@@ -50,6 +50,15 @@ Scripts, automations, helper templates, voice commands, and dashboards for the [
 [volcanoHybridRuntimeTemplate.yaml.txt](https://github.com/magikh0e/haos_stuff/blob/main/Volcano%20Hybrid/volcanoHybridRuntimeTemplate.yaml.txt) - Template sensor (`sensor.volcano_runtime`) tracking minutes since the climate entity entered `heat`. Fallback for integration versions that don't expose a runtime/on-time sensor.  
 [volcanoHybridVoice.yaml.txt](https://github.com/magikh0e/haos_stuff/blob/main/Volcano%20Hybrid/volcanoHybridVoice.yaml.txt) - HA Assist voice control: `intent_script` + `custom_sentences` mapping natural-language phrases to VolcanoFillBag / VolcanoStartAutoProgress intents. Works with any Assist surface (mobile app, voice satellites, local Piper).
 
+## Cannatrol BLE protocol (reverse engineered).
+[Cannatrol BLE Protocol](https://github.com/magikh0e/haos_stuff/blob/main/Cannatrol/Cannatrol_BLE_Protocol.md) - Reverse-engineered Bluetooth Low Energy / GATT protocol for the Cannatrol curing unit, captured and decoded from an Android `btsnoop_hci.log`. Documents the custom GATT service, the write/notify characteristic pair, and the text-based request/response command format — the groundwork for a future native Home Assistant integration.
+
+## Home Assistant DIY alarm system.
+[DIY Alarm System](https://github.com/magikh0e/haos_stuff/blob/main/DIY%20Alarm%20System/alarm-system.html) - Self-hosted alarm built entirely in Home Assistant: contact + motion sensor triggers, TTS announcements, RGB light feedback, PTZ camera tracking, privacy mode, and smart-lock integration. No cloud monitoring service. Full writeup with YAML — also published at [magikh0e.pl](https://magikh0e.pl/pubHomeAutomation/alarm-system.html).
+
+## ESP32 Bluetooth proxy.
+[ESP32 Bluetooth Proxy](https://github.com/magikh0e/haos_stuff/blob/main/ESP32/esp32-bluetooth-proxy.md.txt) - No-code guide to flashing an ESP32 as a Home Assistant Bluetooth proxy, extending HA's BLE range across the house to reach Govee / Xiaomi / Inkbird sensors (and BLE devices like the Volcano and Cannatrol) in rooms the host can't cover. Uses the ESPHome web flasher — ~10 minutes per proxy.
+
 ## Misc automations
 [Contact Sensor Issue-State Notification (Blueprint)](https://github.com/magikh0e/haos_stuff/blob/main/contactSensorIssueState.yaml.txt) - Reusable HA blueprint that fires push + persistent notifications when a binary_sensor (or group) stays in an "issue state" (open / triggered / unavailable) longer than a configurable duration. Handles debounce, an optional gating condition, auto-clear, repeat reminders, multi-target notify, and custom enter/leave actions. Instantiate once per door/window/motion sensor.  
-[Front Door Open Alert](https://github.com/magikh0e/haos_stuff/blob/main/frontDoorAlert.yaml.txt) - Automation pair: alerts via phone push + Nest TTS when the front door is left open 30s+, repeating every ~10 min; plus a "door closed" announcement that skips quick in-and-out trips. Retarget by swapping three entity_ids.  
+[Front Door Open Alert](https://github.com/magikh0e/haos_stuff/blob/main/frontDoorAlert.yaml.txt) - Automation pair: alerts via phone push + Nest TTS when the front door is left open 30s+, repeating every ~10 min; plus a "door closed" announcement that skips quick in-and-out trips. Retarget by swapping three entity_ids.
