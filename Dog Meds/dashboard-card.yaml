@@ -7,12 +7,15 @@ type: entities
 title: 🐶 Dog Medication
 show_header_toggle: false
 entities:
-  - entity: input_boolean.dog_meds_dose1
-    name: Morning (8:00 AM)
+  - entity: input_boolean.dog_meds_6am
+    name: 6 AM — Meds A, B, C
     secondary_info: last-changed
-  - entity: input_boolean.dog_meds_dose2
-    name: Afternoon (2:00 PM)
+  - entity: input_boolean.dog_meds_2pm
+    name: 2 PM — Meds A, C
     secondary_info: last-changed
-  - entity: input_boolean.dog_meds_dose3
-    name: Evening (8:00 PM)
+  - entity: input_boolean.dog_meds_6pm
+    name: 6 PM — Med B
+    secondary_info: last-changed
+  - entity: input_boolean.dog_meds_10pm
+    name: 10 PM — Meds A, C
     secondary_info: last-changed
