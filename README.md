@@ -71,8 +71,8 @@ Scripts, automations, helper templates, voice commands, and dashboards for the [
 ## Maui Snorkel Report.
 [Maui Snorkel Report](https://github.com/magikh0e/haos_stuff/tree/main/Maui%20Snorkel%20Report) - Daily Maui snorkeling-conditions report on a dashboard. Sidesteps the source page's Cloudflare protection by probing the open image host directly for date-based filenames. command_line sensor + Generic Camera + dashboard card.
 
-## Dog Medication reminders.
-[Dog Medication](https://github.com/magikh0e/haos_stuff/tree/main/Dog%20Meds) - Multi-dose daily medication reminders with actionable phone notifications that nag until marked given, a missed-dose escalation (time-sensitive push + spoken TTS backstop), and shared "given or not" state synced across every Home Assistant Companion app with logbook accountability. input_boolean helpers + notify group + automations + dashboard card. No external service — HA is the sync layer.
+## Medication reminders (now its own repo).
+Multi-dose medication reminders — actionable notifications that nag until marked given, missed-dose escalation (time-sensitive push + spoken TTS), and household-synced "given or not" state with logbook accountability — have moved to their own dedicated repository: **[ha-medication-reminder](https://github.com/magikh0e/ha-medication-reminder)**.
 
 ## Misc automations
 [Contact Sensor Issue-State Notification (Blueprint)](https://github.com/magikh0e/haos_stuff/blob/main/contactSensorIssueState.yaml) - Reusable HA blueprint that fires push + persistent notifications when a binary_sensor (or group) stays in an "issue state" (open / triggered / unavailable) longer than a configurable duration. Handles debounce, an optional gating condition, auto-clear, repeat reminders, multi-target notify, and custom enter/leave actions. Instantiate once per door/window/motion sensor.  
