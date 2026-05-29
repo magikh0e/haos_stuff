@@ -5,7 +5,7 @@ while home alone. One shared video list, two TV-specific launchers.
 
 ## Files
 
-- [dogTV.yaml.txt](dogTV.yaml.txt) — three scripts:
+- [dogTV.yaml](dogTV.yaml) — three scripts:
   - `get_dog_tv_url` — returns a random video from the list as `{url, video_id}`
     via a response variable (single source of truth for the playlist).
   - `dog_tv_bedroom` — Android TV. Wakes the TV, then launches the URL with an
@@ -24,7 +24,7 @@ intents vs. Google Cast — so each platform gets its own approach. The shared
 1. Add the scripts to `scripts.yaml`.
 2. Swap entity IDs for your own TVs.
 3. Living Room depends on the WoL helper in
-   [../Universal Media Player/turn-on-living-room-tv.yaml.txt](../Universal%20Media%20Player/turn-on-living-room-tv.yaml.txt).
+   [../Universal Media Player/turn-on-living-room-tv.yaml](../Universal%20Media%20Player/turn-on-living-room-tv.yaml).
 4. Edit the `videos:` list to your preferred channels/videos.
 5. Optionally expose via `intent_script` for voice ("put on Dog TV in the
    bedroom").
