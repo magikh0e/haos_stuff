@@ -59,6 +59,18 @@ Scripts, automations, helper templates, voice commands, and dashboards for the [
 ## ESP32 Bluetooth proxy.
 [ESP32 Bluetooth Proxy](https://github.com/magikh0e/haos_stuff/blob/main/ESP32/esp32-bluetooth-proxy.md.txt) - No-code guide to flashing an ESP32 as a Home Assistant Bluetooth proxy, extending HA's BLE range across the house to reach Govee / Xiaomi / Inkbird sensors (and BLE devices like the Volcano and Cannatrol) in rooms the host can't cover. Uses the ESPHome web flasher — ~10 minutes per proxy.
 
+## Universal Media Player — unified TV control.
+[Universal Media Player](https://github.com/magikh0e/haos_stuff/tree/main/Universal%20Media%20Player) - Combine the multiple integrations a single TV exposes (Android Debug Bridge, Android TV Remote, Google Cast, webOS, Plex) into one controllable media_player entity, with per-integration command routing and Wake-on-LAN power-on. Bedroom (Hisense Google TV) + Living Room (LG webOS) configs and a WoL helper script.
+
+## Dog TV.
+[Dog TV](https://github.com/magikh0e/haos_stuff/tree/main/Dog%20TV) - Plays a random relaxing YouTube video on a TV to keep a dog calm while home alone. Shared playlist via a response-variable helper; Android TV launches via ADB intent, LG webOS via Google Cast.
+
+## Morning Briefing.
+[Morning Briefing](https://github.com/magikh0e/haos_stuff/tree/main/Morning%20Briefing) - Spoken TTS briefing (greeting, date, outdoor weather, indoor temps, snorkel-report nudge) played on a media player passed as a parameter. Defensive templating skips any unavailable sensor instead of erroring.
+
+## Maui Snorkel Report.
+[Maui Snorkel Report](https://github.com/magikh0e/haos_stuff/tree/main/Maui%20Snorkel%20Report) - Daily Maui snorkeling-conditions report on a dashboard. Sidesteps the source page's Cloudflare protection by probing the open image host directly for date-based filenames. command_line sensor + Generic Camera + dashboard card.
+
 ## Misc automations
 [Contact Sensor Issue-State Notification (Blueprint)](https://github.com/magikh0e/haos_stuff/blob/main/contactSensorIssueState.yaml.txt) - Reusable HA blueprint that fires push + persistent notifications when a binary_sensor (or group) stays in an "issue state" (open / triggered / unavailable) longer than a configurable duration. Handles debounce, an optional gating condition, auto-clear, repeat reminders, multi-target notify, and custom enter/leave actions. Instantiate once per door/window/motion sensor.  
 [Front Door Open Alert](https://github.com/magikh0e/haos_stuff/blob/main/frontDoorAlert.yaml.txt) - Automation pair: alerts via phone push + Nest TTS when the front door is left open 30s+, repeating every ~10 min; plus a "door closed" announcement that skips quick in-and-out trips. Retarget by swapping three entity_ids.
