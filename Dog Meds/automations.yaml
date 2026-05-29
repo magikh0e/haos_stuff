@@ -1,7 +1,9 @@
 # Dog Medication reminders — automations.
-# Add these to automations.yaml. Adjust dose times (on :00/:15/:30/:45 boundaries
-# so the first reminder lands on time) and the missed-dose times to match
-# dose time + nag_minutes.
+# Add these to automations.yaml. This example uses a 4-dose schedule where each
+# dose names its specific medications in the reminder, so whoever is dosing sees
+# exactly which pills to give. Adjust dose times (keep them on :00/:15/:30/:45
+# boundaries so the first reminder lands on time), medication names, and the
+# missed-dose times (= dose time + nag_minutes... here +60).
 
 # Reset all doses to "not given" at the start of each day.
 - id: dog_meds_reset
@@ -13,25 +15,27 @@
     - action: input_boolean.turn_off
       target:
         entity_id:
-          - input_boolean.dog_meds_dose1
-          - input_boolean.dog_meds_dose2
-          - input_boolean.dog_meds_dose3
+          - input_boolean.dog_meds_6am
+          - input_boolean.dog_meds_2pm
+          - input_boolean.dog_meds_6pm
+          - input_boolean.dog_meds_10pm
   mode: single
 
 # Every 15 min: for each dose, if it's past dose-time, within the nag window, and
-# not yet given -> send an actionable reminder. Restart-proof (no long-running
-# loop; it simply re-evaluates each tick).
+# not yet given -> send an actionable reminder naming the meds for that dose.
+# Restart-proof (re-evaluates each tick; no long-running loop).
 - id: dog_meds_reminder
   alias: "Dog Meds — Reminder & nag"
   trigger:
     - platform: time_pattern
       minutes: "/15"
   variables:
-    nag_minutes: 120        # keep nagging up to 2h after dose time
+    nag_minutes: 45        # nag for the first 45 min; missed-alert takes over at +60
     doses:
-      - { bool: input_boolean.dog_meds_dose1, time: "08:00", label: "morning" }
-      - { bool: input_boolean.dog_meds_dose2, time: "14:00", label: "afternoon" }
-      - { bool: input_boolean.dog_meds_dose3, time: "20:00", label: "evening" }
+      - { bool: input_boolean.dog_meds_6am,  time: "06:00", key: "6am",  label: "6 AM",  meds: "Medication A, Medication B, and Medication C" }
+      - { bool: input_boolean.dog_meds_2pm,  time: "14:00", key: "2pm",  label: "2 PM",  meds: "Medication A and Medication C" }
+      - { bool: input_boolean.dog_meds_6pm,  time: "18:00", key: "6pm",  label: "6 PM",  meds: "Medication B" }
+      - { bool: input_boolean.dog_meds_10pm, time: "22:00", key: "10pm", label: "10 PM", meds: "Medication A and Medication C" }
   action:
     - repeat:
         for_each: "{{ doses }}"
@@ -47,12 +51,12 @@
             then:
               - action: notify.dog_caretakers
                 data:
-                  title: "🐶 Dog Medication"
-                  message: "Time for the {{ repeat.item.label }} dose — has it been given?"
+                  title: "🐶 Dog Medication — {{ repeat.item.label }}"
+                  message: "Give {{ repeat.item.meds }}. Has it been given?"
                   data:
-                    tag: "dog_meds_{{ repeat.item.label }}"
+                    tag: "dog_meds_{{ repeat.item.key }}"
                     actions:
-                      - action: "DOG_MEDS_GIVEN_{{ repeat.item.label }}"
+                      - action: "DOG_MEDS_GIVEN_{{ repeat.item.key }}"
                         title: "✅ Mark given"
   mode: single
 
@@ -67,50 +71,62 @@
     - condition: template
       value_template: "{{ trigger.event.data.action.startswith('DOG_MEDS_GIVEN_') }}"
   variables:
-    label: "{{ trigger.event.data.action.split('_')[-1] }}"
+    key: "{{ trigger.event.data.action.split('_')[-1] }}"
     bool_map:
-      morning: input_boolean.dog_meds_dose1
-      afternoon: input_boolean.dog_meds_dose2
-      evening: input_boolean.dog_meds_dose3
+      "6am": input_boolean.dog_meds_6am
+      "2pm": input_boolean.dog_meds_2pm
+      "6pm": input_boolean.dog_meds_6pm
+      "10pm": input_boolean.dog_meds_10pm
   action:
     - action: input_boolean.turn_on
       target:
-        entity_id: "{{ bool_map[label] }}"
+        entity_id: "{{ bool_map[key] }}"
     - action: notify.dog_caretakers
       data:
         message: "clear_notification"
         data:
-          tag: "dog_meds_{{ label }}"
+          tag: "dog_meds_{{ key }}"
   mode: parallel
 
-# Missed-dose escalation: at each dose's window-end (dose time + nag_minutes), if
-# still not given, send a time-sensitive push to everyone + a spoken backstop.
+# Missed-dose escalation: at each dose's window-end (dose time + nag window), if
+# still not given, send a time-sensitive push to everyone + a spoken backstop
+# that names the missed meds.
 - id: dog_meds_missed
   alias: "Dog Meds — Missed dose alert"
   trigger:
     - platform: time
-      at: "10:00:00"
-      id: morning
+      at: "07:00:00"
+      id: "6am"
     - platform: time
-      at: "16:00:00"
-      id: afternoon
+      at: "15:00:00"
+      id: "2pm"
     - platform: time
-      at: "22:00:00"
-      id: evening
+      at: "19:00:00"
+      id: "6pm"
+    - platform: time
+      at: "23:00:00"
+      id: "10pm"
   variables:
     bool_map:
-      morning: input_boolean.dog_meds_dose1
-      afternoon: input_boolean.dog_meds_dose2
-      evening: input_boolean.dog_meds_dose3
+      "6am": input_boolean.dog_meds_6am
+      "2pm": input_boolean.dog_meds_2pm
+      "6pm": input_boolean.dog_meds_6pm
+      "10pm": input_boolean.dog_meds_10pm
+    meds_map:
+      "6am": "Medication A, Medication B, and Medication C"
+      "2pm": "Medication A and Medication C"
+      "6pm": "Medication B"
+      "10pm": "Medication A and Medication C"
     dose_bool: "{{ bool_map[trigger.id] }}"
+    dose_meds: "{{ meds_map[trigger.id] }}"
   condition:
     - condition: template
       value_template: "{{ is_state(dose_bool, 'off') }}"
   action:
     - action: notify.dog_caretakers
       data:
-        title: "⚠️ MISSED Dog Medication"
-        message: "The {{ trigger.id }} dose was NOT marked given. Please check on it."
+        title: "⚠️ MISSED Dog Medication — {{ trigger.id }}"
+        message: "The {{ trigger.id }} dose ({{ dose_meds }}) was NOT marked given. Please check on it."
         data:
           tag: "dog_meds_missed_{{ trigger.id }}"
           priority: high
@@ -126,5 +142,5 @@
         entity_id: tts.home_assistant_cloud
       data:
         media_player_entity_id: media_player.home_assistant_voice
-        message: "Attention. The {{ trigger.id }} dog medication dose has not been given."
+        message: "Attention. The {{ trigger.id }} dog medication dose, {{ dose_meds }}, has not been given."
   mode: single
