@@ -106,7 +106,7 @@ NOTIFY ← Handle 0x0010: WIFI_CONNECTED: TRUE
 ### WiFi Credential Retrieval
 ```
 WRITE → Handle 0x0013: GET_WIFI_CREDENTIALS
-NOTIFY ← Handle 0x0010: WIFI_SSID:cDc
+NOTIFY ← Handle 0x0010: WIFI_SSID:<your-ssid>
 ```
 
 **Note:** Only the SSID is returned, not the password. The WiFi password is likely stored on-device but not exposed over BLE.
@@ -149,9 +149,9 @@ Based on Cannatrol app functionality, these commands likely exist but were not c
 1. **Stop scanning** → HCI LE Set Scan Enable (disable)
 2. **Set scan parameters** → HCI LE Set Scan Parameters
 3. **Start scanning** → HCI LE Set Scan Enable (enable)
-4. **Receive CANN advertisement** → HCI LE Advertising Report (MAC `9425357D7850`)
+4. **Receive CANN advertisement** → HCI LE Advertising Report (MAC `<DEVICE_MAC>`)
 5. **Stop scanning** → HCI LE Set Scan Enable (disable)
-6. **Initiate connection** → HCI LE Create Connection to `9425357D7850`
+6. **Initiate connection** → HCI LE Create Connection to `<DEVICE_MAC>`
 7. **Connection complete** → HCI LE Connection Complete (handle 0x0041)
 8. **Set MTU** → Exchange MTU Request (proposed 517 bytes, negotiated 244)
 9. **Service discovery** → ATT Read By Group Type (primary services)
