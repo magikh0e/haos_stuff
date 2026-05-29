@@ -3,16 +3,22 @@
 # don't have one), and the notify group under your `notify:` key, in
 # configuration.yaml. One input_boolean per dose = "given today", reset daily by
 # the reset automation.
+#
+# This example uses a 4-dose schedule where each dose is a different combination
+# of medications — name your helpers/doses however fits your routine.
 
 input_boolean:
-  dog_meds_dose1:
-    name: Dog Meds — Morning
+  dog_meds_6am:
+    name: "Dog Meds — 6 AM (Meds A, B, C)"
     icon: mdi:pill
-  dog_meds_dose2:
-    name: Dog Meds — Afternoon
+  dog_meds_2pm:
+    name: "Dog Meds — 2 PM (Meds A, C)"
     icon: mdi:pill
-  dog_meds_dose3:
-    name: Dog Meds — Evening
+  dog_meds_6pm:
+    name: "Dog Meds — 6 PM (Med B)"
+    icon: mdi:pill
+  dog_meds_10pm:
+    name: "Dog Meds — 10 PM (Meds A, C)"
     icon: mdi:pill
 
 # Reminders fan out to everyone in this group. HA already syncs the GIVEN state
