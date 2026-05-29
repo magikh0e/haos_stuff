@@ -14,21 +14,36 @@ No external service needed: Home Assistant itself is the sync layer.
   them at midnight.
 - A `time_pattern` automation re-checks every 15 minutes and sends an actionable
   reminder ("✅ Mark given") for any dose that's past its time, within the nag
-  window, and not yet given. Because it re-evaluates each tick rather than
-  running a long loop, **it survives HA restarts**.
+  window, and not yet given. **Each reminder names the specific medications for
+  that dose**, so whoever is dosing sees exactly which pills to give. Because it
+  re-evaluates each tick rather than running a long loop, **it survives HA
+  restarts**.
 - Tapping "Mark given" (from any phone) flips the dose on and clears the
   notification everywhere. The dashboard and all Companion apps reflect it
   instantly; the logbook records who marked it.
 - If a dose is never marked given by its window-end (dose time + nag window), a
   **missed-dose escalation** fires: a time-sensitive push to everyone in the
-  notify group plus a spoken TTS backstop.
+  notify group plus a spoken TTS backstop that names the missed meds.
+
+## Example schedule
+
+This example uses a 4-dose-per-day schedule where each dose is a different
+combination of medications (generic names shown — replace with your own):
+
+| Time | Medications |
+|------|-------------|
+| 6:00 AM | Medication A, B, C |
+| 2:00 PM | Medication A, C |
+| 6:00 PM | Medication B |
+| 10:00 PM | Medication A, C |
 
 ## Files
 
 - [configuration.yaml](configuration.yaml) — `input_boolean` helpers (one per
   dose) + a `dog_caretakers` notify group.
 - [automations.yaml](automations.yaml) — four automations: daily reset,
-  reminder/nag, mark-given handler, and missed-dose escalation.
+  reminder/nag (with per-dose medication names), mark-given handler, and
+  missed-dose escalation.
 - [dashboard-card.yaml](dashboard-card.yaml) — an entities card with per-dose
   "given X ago" readouts; also lets you mark a dose manually.
 
@@ -37,20 +52,20 @@ No external service needed: Home Assistant itself is the sync layer.
 1. Add the helpers + notify group to `configuration.yaml` (replace
    `mobile_app_phone` with your real notify service; add a second caretaker to
    the group if desired). Restart HA.
-2. Add the four automations to `automations.yaml`. **Adjust the dose times** to
-   your schedule — keep them on `:00/:15/:30/:45` boundaries so the first
-   reminder lands on time, and set the missed-dose times to dose time +
-   `nag_minutes`.
+2. Add the four automations to `automations.yaml`. **Adjust the dose times,
+   medication names, and missed-dose times** to your schedule — keep dose times
+   on `:00/:15/:30/:45` boundaries so the first reminder lands on time, and set
+   the missed-dose times to dose time + `nag_minutes`.
 3. Add the dashboard card.
 
 ## Customizing
 
 - **More/fewer doses** — add or remove an `input_boolean`, a line in the
-  reminder's `doses:` list, an entry in each `bool_map:`, a trigger in the
-  missed-dose automation, and a card row.
+  reminder's `doses:` list (with its `meds:`), an entry in each `bool_map:` /
+  `meds_map:`, a trigger in the missed-dose automation, and a card row.
 - **Nag window / interval** — change `nag_minutes` and the `time_pattern`
-  minutes.
-- **Fixed course (e.g. 10-day antibiotic)** — add a `condition:` gating the
+  minutes (and shift the missed-dose times to match).
+- **Fixed course (e.g. a 10-day antibiotic)** — add a `condition:` gating the
   automations on a date range, or an `input_datetime` end date.
 
 ## Why not a to-do list or CalDAV?
@@ -60,3 +75,7 @@ actionable reminders and household accountability. HA's own state sync across
 Companion apps is exactly the right tool — CalDAV would only help if you needed
 the status inside an external task app, at the cost of weaker actionable
 reminders.
+
+> ⚠️ This is a reminder aid, not a substitute for your own diligence or
+> veterinary guidance. For time-sensitive medications (e.g. anticonvulsants),
+> confirm dosing windows with your vet.
