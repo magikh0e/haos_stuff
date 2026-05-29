@@ -7,7 +7,7 @@ display, or speaker group.
 
 ## Files
 
-- [morningBriefing.yaml.txt](morningBriefing.yaml.txt) — the `morning_briefing`
+- [morningBriefing.yaml](morningBriefing.yaml) — the `morning_briefing`
   script. Fields: `target_player` (required), `volume` (optional).
 
 ## Behavior
