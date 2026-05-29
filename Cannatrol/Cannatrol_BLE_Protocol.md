@@ -3,7 +3,7 @@ By: magikh0e
 
 **Date:** February 2026
 **Source:** btsnoop_hci.log captured from Pixel 10 Pro XL
-**Device:** Cannatrol unit named "TropicalRootsMaui"
+**Device:** Cannatrol unit named "<device-name>"
 **Device MAC:** 
 
 ---
@@ -42,7 +42,7 @@ After connection, the phone discovers the following service structure:
 - `0300` = Notify characteristic (Cannatrol → phone)
 
 ### Device Name (GATT Read)
-- **Handle 0x0003:** Returns `TropicalRootsMaui` (user-assigned device name)
+- **Handle 0x0003:** Returns `<device-name>` (user-assigned device name)
 
 ---
 
@@ -69,20 +69,20 @@ The challenge is a 16-character random alphanumeric string, different each sessi
 ```
 WRITE → Handle 0x0013: RESPONSE:<58-char-hex>
 ```
-**Session 1:** `RESPONSE:d4f410a830a00c94fc982149d57184a07870c05c1818b844c8512d08fd29`
-**Session 2:** `RESPONSE:d5b0f4d810e0ac5c6884e8899989f8607870c05c1818b844c8512d08fd29`
+**Session 1:** `RESPONSE:d4f410a830a00c94fc982149d57184a0<STATIC-KEY-REDACTED>`
+**Session 2:** `RESPONSE:d5b0f4d810e0ac5c6884e8899989f860<STATIC-KEY-REDACTED>`
 
 ### Response Analysis
 ```
-Session 1: d4f410a830a00c94fc982149d57184a0 | 7870c05c1818b844c8512d08fd29
-Session 2: d5b0f4d810e0ac5c6884e8899989f860 | 7870c05c1818b844c8512d08fd29
+Session 1: d4f410a830a00c94fc982149d57184a0 | <STATIC-KEY-REDACTED>
+Session 2: d5b0f4d810e0ac5c6884e8899989f860 | <STATIC-KEY-REDACTED>
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
            Variable (challenge-dependent)      Static (device key / secret)
 ```
 
 **Key observations:**
 - Response is 58 hex characters = 29 bytes
-- Last 15 bytes (`7870c05c1818b844c8512d08fd29`) are identical across sessions — likely derived from a static device secret or pairing key
+- Last 15 bytes (`<STATIC-KEY-REDACTED>`) are identical across sessions — likely derived from a static device secret or pairing key
 - First 14 bytes vary with each challenge
 - Likely hash: `HMAC-SHA256(device_secret, challenge)` truncated, or a similar construction
 
@@ -157,7 +157,7 @@ Based on Cannatrol app functionality, these commands likely exist but were not c
 9. **Service discovery** → ATT Read By Group Type (primary services)
 10. **Characteristic discovery** → ATT Read By Type (characteristics per service)
 11. **Enable notifications** → ATT Write Request on CCCD (handle 0x0011, value 0x0001)
-12. **Read device name** → ATT Read Request on handle 0x0003 → `TropicalRootsMaui`
+12. **Read device name** → ATT Read Request on handle 0x0003 → `<device-name>`
 13. **Begin auth flow** → Write `REQUEST_CHALLENGE` to handle 0x0013
 
 ---
