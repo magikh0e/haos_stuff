@@ -1,0 +1,59 @@
+# Morning Briefing — spoken TTS summary to a chosen media player.
+# Reports greeting + date, outdoor weather (OpenWeatherMap), indoor temps, and
+# whether the daily snorkel report is posted. The target media player is a
+# parameter, so you can fire it at any speaker.
+#
+# Defensive templating: any sensor that's unavailable is simply skipped (no
+# errors). Replace entity IDs with your own.
+
+morning_briefing:
+  alias: Morning Briefing
+  fields:
+    target_player:
+      description: Media player to play the briefing on
+      example: media_player.home_assistant_voice
+      selector:
+        entity:
+          filter:
+            domain: media_player
+    volume:
+      description: Optional volume (0.0-1.0) to set before speaking
+      example: 0.6
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+  sequence:
+    - variables:
+        player: "{{ target_player | default('media_player.home_assistant_voice') }}"
+        greeting: >-
+          {% set h = now().hour %}
+          {% if h < 12 %}Good morning{% elif h < 18 %}Good afternoon{% else %}Good evening{% endif %}
+        briefing: >-
+          {% set ow_t = states('sensor.openweathermap_temperature') | float(none) %}
+          {% set ow_c = states('sensor.openweathermap_condition') %}
+          {% set ow_h = states('sensor.openweathermap_humidity') %}
+          {% set lr = states('sensor.living_room_temperature') | float(none) %}
+          {% set br = states('sensor.bedroom_temperature') | float(none) %}
+          {{ greeting }}. It's {{ now().strftime('%A, %B %-d') }}.
+          {% if ow_t is not none %}Outside it's {{ ow_t | round }} degrees and {{ ow_c | replace('partlycloudy','partly cloudy') | replace('-',' ') }}, with humidity at {{ ow_h }} percent.{% endif %}
+          {% if lr is not none %} The living room is {{ lr | round }} degrees.{% endif %}
+          {% if br is not none %} The bedroom is {{ br | round }} degrees.{% endif %}
+          {% if 'email.jpg' in states('sensor.maui_snorkel_report_url') %} Today's Maui snorkel report is posted and ready to view.{% endif %}
+          {% if ow_t is not none and br is not none and ow_t < br %} It's cooler outside than in the bedroom, so you may want to open a window.{% endif %}
+          Have a great day.
+    - if: "{{ volume is defined }}"
+      then:
+        - action: media_player.volume_set
+          target:
+            entity_id: "{{ player }}"
+          data:
+            volume_level: "{{ volume }}"
+    - action: tts.speak
+      target:
+        entity_id: tts.home_assistant_cloud
+      data:
+        media_player_entity_id: "{{ player }}"
+        message: "{{ briefing }}"
+  mode: single
