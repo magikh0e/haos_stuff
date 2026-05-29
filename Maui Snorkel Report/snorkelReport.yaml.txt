@@ -1,0 +1,51 @@
+# Maui Snorkel Report — daily conditions image on a dashboard.
+# The conditions page (thesnorkelstore.com) is behind Cloudflare, so it can't be
+# scraped directly. But the image host (a Cloudflare Worker) is open, the upload
+# folder is static, and the filename is date-based:
+#   .../<month>-<day>-<year>-email.jpg     e.g. may-27-2026-email.jpg
+#
+# This command_line sensor probes the image host for the last ~10 days and
+# returns the most recent published report URL (handles the daily publish lag
+# and skipped days). A Generic Camera (set up via the UI) points at this sensor;
+# a dashboard card displays it with a date caption.
+#
+# NOTE: command_line runs in the HA Core container, which has BusyBox `wget`
+# (not curl). Hence wget --spider for the existence check.
+
+command_line:
+  - sensor:
+      name: Maui Snorkel Report URL
+      unique_id: maui_snorkel_report_url
+      scan_interval: 10800   # every 3 hours
+      command: >-
+        for url in {% for i in range(10) %}"https://maui-ready.thesnorkelstore.workers.dev/wp-content/uploads/2016/06/27073329/{{ (now() - timedelta(days=i)).strftime('%B-%-d-%Y') | lower }}-email.jpg" {% endfor %}; do if wget -q --spider "$url" 2>/dev/null; then echo "$url"; break; fi; done
+
+# ---------------------------------------------------------------------------
+# Generic Camera — set up via the UI (Settings -> Devices & Services ->
+# Add Integration -> Generic Camera), since the generic camera no longer
+# supports YAML. In the "Still image URL" field, use the template:
+#
+#   {{ states('sensor.maui_snorkel_report_url') }}
+#
+# Name it "Maui Snorkel Report" -> creates camera.maui_snorkel_report.
+# (The sensor must already hold a valid URL or the UI validation will reject it.)
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Dashboard card (Lovelace) — picture + auto date caption parsed from the URL:
+#
+# type: vertical-stack
+# cards:
+#   - type: picture-entity
+#     entity: camera.maui_snorkel_report
+#     name: Maui Snorkel Conditions
+#     camera_view: auto
+#     show_state: false
+#     tap_action:
+#       action: more-info
+#   - type: markdown
+#     content: >
+#       {% set url = states('sensor.maui_snorkel_report_url') %}
+#       {% set d = url.split('/')[-1].replace('-email.jpg','').replace('-', ' ') | title %}
+#       **Report date:** {{ d }} &nbsp;&bull;&nbsp; _checked {{ relative_time(states.sensor.maui_snorkel_report_url.last_updated) }} ago_
+# ---------------------------------------------------------------------------
