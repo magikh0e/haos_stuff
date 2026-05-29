@@ -23,7 +23,7 @@ naturally handles the daily publish lag (and skipped days).
 
 ## Files
 
-- [snorkelReport.yaml.txt](snorkelReport.yaml.txt) — the `command_line` sensor,
+- [snorkelReport.yaml](snorkelReport.yaml) — the `command_line` sensor,
   plus inline instructions for the Generic Camera (UI setup) and the dashboard
   card with an auto date caption.
 
