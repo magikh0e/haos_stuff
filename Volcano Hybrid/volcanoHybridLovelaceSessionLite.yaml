@@ -1,0 +1,165 @@
+# ==============================================================================
+# Volcano Hybrid — Session Dashboard (Lite)
+# ------------------------------------------------------------------------------
+# Variant of volcanoHybridLovelaceSession.yaml.txt with the runtime-driven
+# auto-progress / gauge cards removed. Works with any install of
+# SavageNL/home-assistant-volcano-hybrid that exposes at least:
+#
+#   climate.volcano_hybrid                   — climate entity
+#   binary_sensor.volcano_hybrid_connected   — BLE connection state
+#   sensor.volcano_hybrid_auto_off_time      — minutes until auto-shutoff
+#
+# No runtime / on-time sensor required, no auto-progress automation required,
+# no companion scripts required. Stock Lovelace cards only.
+#
+# Paste path:
+#   Dashboard → ⋮ Edit dashboard → + ADD CARD → "Manual" → paste.
+# ==============================================================================
+
+
+type: vertical-stack
+title: Volcano Session
+cards:
+
+  # ---------- Status header — at-a-glance state ----------
+  # Shows current/target temp, heating + fan state, BLE connection, and
+  # the auto-off countdown (if reporting). Reads temperature_unit from
+  # the climate entity so this renders correctly on both deg C and deg F.
+  - type: markdown
+    content: |
+      ### Volcano Session
+
+      {% set t = state_attr('climate.volcano_hybrid', 'temperature') %}
+      {% set c = state_attr('climate.volcano_hybrid', 'current_temperature') %}
+      {% set unit = state_attr('climate.volcano_hybrid', 'temperature_unit') | default('deg') %}
+      {% set heat = is_state('climate.volcano_hybrid', 'heat') %}
+      {% set fan = state_attr('climate.volcano_hybrid', 'fan_mode') %}
+      {% set connected = is_state('binary_sensor.volcano_hybrid_connected', 'on') %}
+      {% set auto_off = states('sensor.volcano_hybrid_auto_off_time') %}
+
+      **Current:** {{ c | default('--') }}{{ unit }}
+      &nbsp;&nbsp;**Target:** {{ t | default('--') }}{{ unit }}
+
+      Heater: **{{ 'ON' if heat else 'idle' }}**
+      &nbsp;|&nbsp;
+      Fan: **{{ 'ON' if fan == 'on' else 'off' }}**
+      &nbsp;|&nbsp;
+      BLE: **{{ 'connected' if connected else 'OFFLINE' }}**
+
+      {%- if auto_off not in ['unknown', 'unavailable', 'none', None] %}
+
+      Auto-off in: **{{ auto_off }} min**
+      {%- endif %}
+
+  # ---------- Default functionality — built-in thermostat slider ----------
+  - type: thermostat
+    entity: climate.volcano_hybrid
+    name: Temperature
+
+  # ---------- Vapesuvius temperature ladder ----------
+  # Five direct-jump buttons. Each sets the target temp via
+  # climate.set_temperature — no companion scripts needed.
+  - type: markdown
+    content: |
+      **Vapesuvius ladder** &nbsp; — &nbsp; tap a rung to jump there directly.
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: "1 · 179°"
+        icon: mdi:thermometer-low
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_temperature
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            temperature: 179
+      - type: button
+        name: "2 · 185°"
+        icon: mdi:thermometer
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_temperature
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            temperature: 185
+      - type: button
+        name: "3 · 191°"
+        icon: mdi:thermometer
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_temperature
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            temperature: 191
+      - type: button
+        name: "4 · 199°"
+        icon: mdi:thermometer-high
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_temperature
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            temperature: 199
+      - type: button
+        name: "5 · 205°"
+        icon: mdi:thermometer-alert
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_temperature
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            temperature: 205
+
+  # ---------- Big "Fill a bag" — primary session action ----------
+  # Confirmation guard prevents accidental triggers. Requires
+  # script.volcano_fill_bag from volcanoHybridFillBag.yaml.txt — if you
+  # don't have that installed yet, remove this whole block.
+  - type: button
+    name: Fill a bag
+    icon: mdi:bag-personal
+    show_state: false
+    icon_height: 56px
+    tap_action:
+      action: perform-action
+      perform_action: script.volcano_fill_bag
+      confirmation:
+        text: "Run the full bag-fill sequence (~60s)?"
+
+  # ---------- Fan on / fan off pair ----------
+  # Default Volcano functionality — manual fan control alongside the
+  # script-driven bag-fill. Useful for purging the chamber between bags.
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Fan on
+        icon: mdi:fan
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_fan_mode
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            fan_mode: "on"
+      - type: button
+        name: Fan off
+        icon: mdi:fan-off
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: climate.set_fan_mode
+          target:
+            entity_id: climate.volcano_hybrid
+          data:
+            fan_mode: "off"
