@@ -1,0 +1,60 @@
+# Dog TV — random relaxing-video playback to a TV.
+# get_dog_tv_url returns a random video (URL + extracted YouTube ID) from a
+# shared list. Each TV script wakes the TV and launches the video.
+#
+# Bedroom is an Android TV (launched via ADB intent); Living Room is an LG
+# webOS TV (launched via Google Cast, woken via the WoL helper script —
+# see ../Universal Media Player/turn-on-living-room-tv.yaml.txt).
+
+get_dog_tv_url:
+  alias: Get Random Dog TV URL
+  sequence:
+    - variables:
+        videos:
+          - 'https://www.youtube.com/watch?v=ggkYESx1Fpc'
+          - 'https://www.youtube.com/watch?v=nYcHi9EgUHs'
+          - 'https://www.youtube.com/watch?v=ru1z02CXbaA'
+          - 'https://www.youtube.com/watch?v=QVfiP1x-vng'
+          - 'https://www.youtube.com/watch?v=j_-azXHHGVc'
+        picked_url: "{{ videos | random }}"
+        result:
+          url: "{{ picked_url }}"
+          video_id: "{{ picked_url.split('v=')[1].split('&')[0] }}"
+    - stop: ""
+      response_variable: result
+
+dog_tv_bedroom:
+  alias: Dog TV Bedroom
+  sequence:
+    - action: script.get_dog_tv_url
+      response_variable: dog
+    - action: media_player.turn_on
+      target:
+        entity_id: media_player.bedroom_tv
+    - delay:
+        seconds: 15
+    - action: androidtv.adb_command
+      target:
+        entity_id: media_player.bedroom_tv_adb
+      data:
+        command: "am start -a android.intent.action.VIEW -d '{{ dog.url }}'"
+  mode: single
+
+dog_tv_living_room:
+  alias: Dog TV (Living Room)
+  sequence:
+    - action: script.get_dog_tv_url
+      response_variable: dog
+    - action: script.turn_on_living_room_tv
+    - delay: "00:00:03"
+    - action: media_player.play_media
+      target:
+        entity_id: media_player.lg_webos_tv_oled77c4aua    # Cast entity
+      data:
+        media_content_type: cast
+        media_content_id: |
+          {
+            "app_name": "youtube",
+            "media_id": "{{ dog.video_id }}"
+          }
+  mode: single
