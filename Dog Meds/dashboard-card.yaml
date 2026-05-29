@@ -1,0 +1,18 @@
+# Dog Medication — dashboard card.
+# `last-changed` gives a free "given X ago" readout when a dose is toggled on.
+# You can also flip a dose manually here (e.g. if given before the reminder),
+# which suppresses that dose's nag.
+
+type: entities
+title: 🐶 Dog Medication
+show_header_toggle: false
+entities:
+  - entity: input_boolean.dog_meds_dose1
+    name: Morning (8:00 AM)
+    secondary_info: last-changed
+  - entity: input_boolean.dog_meds_dose2
+    name: Afternoon (2:00 PM)
+    secondary_info: last-changed
+  - entity: input_boolean.dog_meds_dose3
+    name: Evening (8:00 PM)
+    secondary_info: last-changed
