@@ -1,0 +1,27 @@
+# Wake-on-LAN helper for the LG webOS TV.
+# The webOS integration only advertises media_player.turn_on if a MAC is
+# registered; this script wakes the TV via a magic packet instead, then waits
+# until it reports a non-off state. Used by the Living Room Universal MP's
+# turn_on command and by the Dog TV (Living Room) script.
+#
+# Requires `wake_on_lan:` enabled in configuration.yaml.
+# Replace the MAC with your TV's, and enable "Mobile TV On" / Quick Start+ on
+# the TV (Settings -> General -> Devices -> External Devices -> Connect Mobile
+# TV On) so it accepts WoL packets while in standby.
+
+turn_on_living_room_tv:
+  alias: Turn On Living Room TV
+  sequence:
+    - if:
+        - condition: state
+          entity_id: media_player.lg_webos_tv_oled77c4aua_3
+          state: ["off", "unavailable", "unknown", "standby"]
+      then:
+        - service: wake_on_lan.send_magic_packet
+          data:
+            mac: "AA:BB:CC:DD:EE:FF"
+        - wait_template: >-
+            {{ states('media_player.lg_webos_tv_oled77c4aua_3')
+               not in ['off', 'unavailable', 'unknown', 'standby'] }}
+          timeout: "00:00:20"
+          continue_on_timeout: true
