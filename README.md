@@ -14,6 +14,9 @@ Several of these have longer write-ups published at **[magikh0e.pl/pubHomeAutoma
 **Power**
 - [EcoFlow Delta 3 Max Plus — Dashboard](#ecoflow-delta-3-max-plus--dashboard)
 
+**3D printing**
+- [Creality K2 Plus — Dashboard](#creality-k2-plus--dashboard)
+
 **Media / voice**
 - [Universal Media Player — Unified TV Control](#universal-media-player--unified-tv-control)
 - [Dog TV](#dog-tv)
@@ -60,6 +63,18 @@ None - uses only built-in Home Assistant cards (gauge, tile, entities, statistic
 
 ### <ins>Setup</ins>
 Entity IDs use a generic `delta_3_max_plus_` prefix across the sensor/switch/number domains. Find your real prefix via Developer Tools -> States (filter "battery"), then find-and-replace `delta_3_max_plus` throughout the YAML with your device's prefix (e.g. `delta_3_max_plus_1753`). Paste via Edit dashboard -> Raw configuration editor.
+
+## Creality K2 Plus — Dashboard
+[Creality K2 Plus Dashboard](https://github.com/magikh0e/haos_stuff/blob/main/Creality%20K2%20Plus/Creality%20K2%20Plus%20Dashboard.yaml) - For the [3dg1luk43/ha_creality_ws](https://github.com/3dg1luk43/ha_creality_ws) integration (local WebSocket). Find your entity prefix in Developer Tools → Template and swap `k2plus_1516` throughout.
+
+> 📖 Full write-up: [magikh0e.pl/pubHomeAutomation/creality-k2-plus-dashboard.html](https://magikh0e.pl/pubHomeAutomation/creality-k2-plus-dashboard.html)
+
+![Creality K2 Plus Home Assistant dashboard](https://github.com/magikh0e/haos_stuff/blob/main/Creality%20K2%20Plus/Creality%20K2%20Plus%20Dashboard.jpg?raw=true)
+
+Live camera, print status with ETA, nozzle/bed/chamber gauges + target sliders, XYZ position, print controls (pause/resume/stop/home), print tuning + flow, chamber light, fans, dual CFS filament tables (type/color/remaining), external filament, and a 2-hour temperature history graph. Progress + model-preview cards auto-hide when idle; an attention banner appears on error or stopped.
+
+### <ins>Custom Cards used by dashboard, install via HACS..</ins>
+None - uses only built-in Home Assistant cards (markdown, picture-entity, gauge, tile, entity, button, history-graph). No HACS dependencies.
 
 ## Volcano Hybrid — Scripts, Dashboards & Voice
 Scripts, automations, helper templates, voice commands, and dashboards for the [SavageNL/home-assistant-volcano-hybrid](https://github.com/SavageNL/home-assistant-volcano-hybrid) BLE integration. Session controls implement the [Vapesuvius temperature ladder](https://www.reddit.com/user/Vapesuvius/comments/zuwcs7/) (179 → 185 → 191 → 199 → 205 °C). Stock Lovelace cards only — no HACS dependencies.
