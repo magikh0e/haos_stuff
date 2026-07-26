@@ -124,3 +124,9 @@ Multi-dose medication reminders — actionable notifications that nag until mark
 ## Misc Automations
 [Contact Sensor Issue-State Notification (Blueprint)](https://github.com/magikh0e/haos_stuff/blob/main/contactSensorIssueState.yaml) - Reusable HA blueprint that fires push + persistent notifications when a binary_sensor (or group) stays in an "issue state" (open / triggered / unavailable) longer than a configurable duration. Handles debounce, an optional gating condition, auto-clear, repeat reminders, multi-target notify, and custom enter/leave actions. Instantiate once per door/window/motion sensor.  
 [Front Door Open Alert](https://github.com/magikh0e/haos_stuff/blob/main/frontDoorAlert.yaml) - Automation pair: alerts via phone push + Nest TTS when the front door is left open 30s+, repeating every ~10 min; plus a "door closed" announcement that skips quick in-and-out trips. Retarget by swapping three entity_ids.
+
+## Support
+
+These are free and open-source, built and maintained in my own time. If any of it has saved you time (or a missed dose), a coffee is always appreciated and helps keep it going.
+
+<a href="https://buymeacoffee.com/magikh0e"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" height="42"></a>
