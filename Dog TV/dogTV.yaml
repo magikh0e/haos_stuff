@@ -1,10 +1,13 @@
-# Dog TV — random relaxing-video playback to a TV.
+# Dog TV: random relaxing-video playback to a TV.
 # get_dog_tv_url returns a random video (URL + extracted YouTube ID) from a
 # shared list. Each TV script wakes the TV and launches the video.
 #
-# Bedroom is an Android TV (launched via ADB intent); Living Room is an LG
-# webOS TV (launched via Google Cast, woken via the WoL helper script —
-# see ../Universal Media Player/turn-on-living-room-tv.yaml.txt).
+# Bedroom is an Android TV (launched via ADB intent). Living Room is an LG
+# webOS TV: it launches the TV's native YouTube app (system.launcher/launch),
+# woken via the WoL helper script (see
+# ../Universal Media Player/turn-on-living-room-tv.yaml). Google Cast is no
+# longer used here: casttube's YouTube lounge pairing broke upstream (HTTP 400
+# "Parameter missing" at get_lounge_token_batch), so quick_play youtube fails.
 
 get_dog_tv_url:
   alias: Get Random Dog TV URL
@@ -46,15 +49,21 @@ dog_tv_living_room:
     - action: script.get_dog_tv_url
       response_variable: dog
     - action: script.turn_on_living_room_tv
-    - delay: "00:00:03"
-    - action: media_player.play_media
+    - delay: "00:00:05"          # let webOS finish waking before launching an app
+    - action: webostv.command
       target:
-        entity_id: media_player.lg_webos_tv_oled77c4aua    # Cast entity
+        entity_id: media_player.lg_webos_tv_oled77c4aua_3    # webOS entity, not the Cast one
       data:
-        media_content_type: cast
-        media_content_id: |
-          {
-            "app_name": "youtube",
-            "media_id": "{{ dog.video_id }}"
-          }
+        command: system.launcher/launch
+        payload:
+          id: youtube.leanback.v4
+          # Bare video id is the current format. If YouTube opens but the video
+          # does not start playing, switch this to "v={{ dog.video_id }}".
+          contentId: "{{ dog.video_id }}"
+    - delay: "00:00:05"          # give the "Who's watching?" prompt time to appear
+    - action: webostv.button
+      target:
+        entity_id: media_player.lg_webos_tv_oled77c4aua_3
+      data:
+        button: ENTER
   mode: single
