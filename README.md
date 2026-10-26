@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="assets/logo-512.png" width="220" height="220"
+       alt="A badge in a metallic frame: a neon-green house with a gear at its
+            center, wired to Wi-Fi, Bluetooth, gauges and dashboard panels, with
+            YAML automation snippets around it, titled HAOS Stuff above and
+            Home Automation below.">
+</p>
+
 # haos_stuff
 
 My Home Assistant OS setup — dashboards, automations, scripts, helper templates, voice control, custom blueprints, and a reverse-engineered BLE protocol. Most of it is retargetable to your own entities by swapping `entity_id`s; each section calls out its dependencies (HACS cards, integrations) up front.
