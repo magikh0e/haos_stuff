@@ -1,8 +1,8 @@
 <p align="center">
   <img src="assets/logo-512.png" width="220" height="220"
-       alt="A badge in a metallic frame: a neon-green house with a gear at its
-            center, wired to Wi-Fi, Bluetooth, gauges and dashboard panels, with
-            YAML automation snippets around it, titled HAOS Stuff above and
+       alt="A badge: a sky-blue house with a hub of connected nodes inside,
+            wired to a thermostat, a TV, a smart speaker, a battery and a 3D
+            printer, in a riveted metal frame titled HAOS Stuff above and
             Home Automation below.">
 </p>
 
